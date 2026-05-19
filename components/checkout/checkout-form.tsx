@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, WHATSAPP_NUMBER, CURRENCY_SYMBOL } from "@/lib/constants";
+import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export function CheckoutForm() {
@@ -150,6 +151,41 @@ export function CheckoutForm() {
       <Button type="submit" size="lg" className="w-full" disabled={loading || items.length === 0}>
         {loading ? "Placing Order..." : `Place Order — Rs. ${total.toLocaleString()}`}
       </Button>
+
+      {WHATSAPP_NUMBER && items.length > 0 && (
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10"
+          asChild
+        >
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+              [
+                "Hi! I'd like to place an order:",
+                "",
+                ...items.map(
+                  (item, idx) =>
+                    `${idx + 1}. ${item.name}${
+                      item.variantLabel ? ` (${item.variantLabel})` : ""
+                    } — Qty: ${item.quantity} × ${CURRENCY_SYMBOL} ${item.price.toLocaleString()} = ${CURRENCY_SYMBOL} ${(
+                      item.price * item.quantity
+                    ).toLocaleString()}`
+                ),
+                "",
+                `Subtotal: ${CURRENCY_SYMBOL} ${subtotal.toLocaleString()}`,
+                `Shipping: ${shipping === 0 ? "Free" : `${CURRENCY_SYMBOL} ${shipping.toLocaleString()}`}`,
+                `Total: ${CURRENCY_SYMBOL} ${total.toLocaleString()}`,
+              ].join("\n")
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle className="mr-2 h-5 w-5" />
+            Buy on WhatsApp
+          </a>
+        </Button>
+      )}
     </form>
   );
 }
