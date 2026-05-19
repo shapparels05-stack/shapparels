@@ -6,6 +6,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetFooter,
@@ -32,6 +33,9 @@ export function CartSheet() {
           <SheetTitle className="font-serif text-lg">
             Your Cart {itemCount > 0 && `(${itemCount})`}
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            Review the items in your cart, then continue to view cart or checkout.
+          </SheetDescription>
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -39,6 +43,9 @@ export function CartSheet() {
             <ShoppingBag className="h-12 w-12 text-muted-foreground/30" />
             <p className="mt-4 font-serif text-base text-muted-foreground">
               Your cart is empty
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Browse our collection and find something you love.
             </p>
             <Button className="mt-6" onClick={closeSheet} asChild>
               <Link href="/products">Continue Shopping</Link>
