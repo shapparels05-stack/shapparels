@@ -88,6 +88,14 @@ export function ProductDetailClient({
 
   const needsVariantSelection = optionTypes.length > 0 && !selectedVariant;
 
+  const missingOptionsLabel = useMemo(() => {
+    if (!needsVariantSelection) return null;
+    const missing = optionTypes
+      .filter((ot) => !selectedOptions[ot.id])
+      .map((ot) => ot.name);
+    return missing.length > 0 ? missing.join(", ") : null;
+  }, [needsVariantSelection, optionTypes, selectedOptions]);
+
   return (
     <div className="mt-6 space-y-6">
       <PriceDisplay
@@ -115,7 +123,8 @@ export function ProductDetailClient({
         variantId={selectedVariant?.id || null}
         variantLabel={variantLabel}
         stock={selectedVariant ? selectedVariant.stock : optionTypes.length === 0 ? product.stock : undefined}
-        disabled={needsVariantSelection}
+        needsVariantSelection={needsVariantSelection}
+        missingOptionsLabel={missingOptionsLabel}
       />
 
       {needsVariantSelection && (

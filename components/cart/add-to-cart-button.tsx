@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingBag, Minus, Plus, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, Minus, Plus, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
-import { WHATSAPP_NUMBER, CURRENCY_SYMBOL } from "@/lib/constants";
 import { toast } from "sonner";
 
 interface AddToCartButtonProps {
@@ -19,7 +19,8 @@ interface AddToCartButtonProps {
   variantId: string | null;
   variantLabel: string | null;
   stock?: number;
-  disabled?: boolean;
+  needsVariantSelection?: boolean;
+  missingOptionsLabel?: string | null;
 }
 
 export function AddToCartButton({
@@ -27,10 +28,13 @@ export function AddToCartButton({
   variantId,
   variantLabel,
   stock,
-  disabled,
+  needsVariantSelection = false,
+  missingOptionsLabel,
 }: AddToCartButtonProps) {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
+  const openSheet = useCartStore((s) => s.openSheet);
   const cartItems = useCartStore((s) => s.items);
 
   // How many of this item are already in the cart
@@ -40,11 +44,26 @@ export function AddToCartButton({
   )?.quantity ?? 0;
   const remaining = stock !== undefined ? stock - inCart : Infinity;
   const allInCart = stock !== undefined && remaining <= 0;
+  const outOfStock = stock !== undefined && stock <= 0;
 
-  const handleAddToCart = () => {
+  const variantErrorMessage = missingOptionsLabel
+    ? `Please select ${missingOptionsLabel} first`
+    : "Please select all options first";
+
+  const ensureSelection = () => {
+    if (needsVariantSelection) {
+      toast.error(variantErrorMessage);
+      return false;
+    }
+    return true;
+  };
+
+  const performAdd = () => {
     if (stock !== undefined && (remaining <= 0 || quantity > remaining)) {
-      toast.error(remaining <= 0 ? "All stock is already in your cart" : `Only ${remaining} more available`);
-      return;
+      toast.error(
+        remaining <= 0 ? "All stock is already in your cart" : `Only ${remaining} more available`
+      );
+      return false;
     }
     addItem({
       productId: product.id,
@@ -58,13 +77,22 @@ export function AddToCartButton({
       quantity,
       maxStock: stock,
     });
-    toast.success(`${product.name} added to cart`);
     setQuantity(1);
+    return true;
   };
 
-  const whatsappMessage = encodeURIComponent(
-    `Hi! I'm interested in ${product.name}${variantLabel ? ` (${variantLabel})` : ""} - ${CURRENCY_SYMBOL} ${product.price.toLocaleString()}`
-  );
+  const handleAddToCart = () => {
+    if (!ensureSelection()) return;
+    if (!performAdd()) return;
+    toast.success(`${product.name} added to cart`);
+    openSheet();
+  };
+
+  const handleCheckout = () => {
+    if (!ensureSelection()) return;
+    if (!performAdd()) return;
+    router.push("/checkout");
+  };
 
   return (
     <div className="space-y-3">
@@ -74,7 +102,6 @@ export function AddToCartButton({
         <div className="flex items-center rounded-md border border-border">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={disabled}
             className="flex h-9 w-9 items-center justify-center hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Minus className="h-4 w-4" />
@@ -84,7 +111,7 @@ export function AddToCartButton({
           </span>
           <button
             onClick={() => setQuantity(Math.min(quantity + 1, Math.max(remaining, 1)))}
-            disabled={disabled || (stock !== undefined && quantity >= remaining)}
+            disabled={stock !== undefined && quantity >= remaining}
             className="flex h-9 w-9 items-center justify-center hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Plus className="h-4 w-4" />
@@ -102,34 +129,27 @@ export function AddToCartButton({
         size="lg"
         className="w-full"
         onClick={handleAddToCart}
-        disabled={disabled || allInCart || (stock !== undefined && stock <= 0)}
+        disabled={outOfStock || allInCart}
       >
         <ShoppingBag className="mr-2 h-5 w-5" />
-        {stock !== undefined && stock <= 0
+        {outOfStock
           ? "Out of Stock"
           : allInCart
           ? "All Stock in Cart"
           : "Add to Cart"}
       </Button>
 
-      {/* WhatsApp Buy */}
-      {WHATSAPP_NUMBER && (
-        <Button
-          size="lg"
-          variant="outline"
-          className="w-full border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10"
-          asChild
-        >
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MessageCircle className="mr-2 h-5 w-5" />
-            Buy on WhatsApp
-          </a>
-        </Button>
-      )}
+      {/* Checkout */}
+      <Button
+        size="lg"
+        variant="outline"
+        className="w-full"
+        onClick={handleCheckout}
+        disabled={outOfStock || allInCart}
+      >
+        <CreditCard className="mr-2 h-5 w-5" />
+        Checkout
+      </Button>
     </div>
   );
 }

@@ -16,12 +16,16 @@ export type CartItem = {
 
 type CartStore = {
   items: CartItem[];
+  isSheetOpen: boolean;
   addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
   removeItem: (productId: string, variantId: string | null) => void;
   updateQuantity: (productId: string, variantId: string | null, quantity: number) => void;
   clearCart: () => void;
   getTotal: () => number;
   getItemCount: () => number;
+  openSheet: () => void;
+  closeSheet: () => void;
+  setSheetOpen: (open: boolean) => void;
 };
 
 const getCartKey = (productId: string, variantId: string | null) =>
@@ -31,6 +35,7 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      isSheetOpen: false,
 
       addItem: (item) => {
         set((state) => {
@@ -104,9 +109,14 @@ export const useCartStore = create<CartStore>()(
       getItemCount: () => {
         return get().items.reduce((count, item) => count + item.quantity, 0);
       },
+
+      openSheet: () => set({ isSheetOpen: true }),
+      closeSheet: () => set({ isSheetOpen: false }),
+      setSheetOpen: (open) => set({ isSheetOpen: open }),
     }),
     {
       name: "sh-apparels-cart",
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );
