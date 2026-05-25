@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CheckCircle, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WHATSAPP_NUMBER, SITE_NAME } from "@/lib/constants";
+import { getOrderByNumber } from "@/lib/db/queries/orders";
+import { PurchaseTracker } from "@/components/analytics/purchase-tracker";
 
 interface SuccessPageProps {
   searchParams: Promise<{ order?: string }>;
@@ -10,12 +12,27 @@ interface SuccessPageProps {
 export default async function CheckoutSuccessPage({ searchParams }: SuccessPageProps) {
   const { order: orderNumber } = await searchParams;
 
+  // Pull the real order so the Purchase event reports the actual paid amount.
+  const order = orderNumber ? await getOrderByNumber(orderNumber) : null;
+
   const whatsappMessage = encodeURIComponent(
     `Hi! I just placed order ${orderNumber || ""} on ${SITE_NAME}. Can you confirm?`
   );
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8 text-center">
+      {order && (
+        <PurchaseTracker
+          orderNumber={order.orderNumber}
+          value={parseFloat(order.total)}
+          contents={order.items.map((item) => ({
+            id: item.productId ?? "",
+            quantity: item.quantity,
+            price: parseFloat(item.price),
+          }))}
+        />
+      )}
+
       <CheckCircle className="mx-auto h-16 w-16 text-primary" />
 
       <h1 className="mt-6 font-serif text-3xl font-bold">

@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
+import { PixelPageView } from "@/components/analytics/pixel-page-view";
 import "./globals.css";
 
 const inter = Inter({
@@ -63,7 +64,6 @@ export default function RootLayout({
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '1549926503362795');
-            fbq('track', 'PageView');
           `}
         </Script>
         <noscript>
@@ -88,6 +88,7 @@ export default function RootLayout({
           {children}
           <Toaster richColors position="top-right" />
         </ThemeProvider>
+        <PixelPageView />
       </body>
     </html>
   );

@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, WHATSAPP_NUMBER, CURRENCY_SYMBOL } from "@/lib/constants";
 import { MessageCircle } from "lucide-react";
-import { trackPurchase } from "@/lib/fb-pixel";
 import { toast } from "sonner";
 
 export function CheckoutForm() {
@@ -73,15 +72,6 @@ export function CheckoutForm() {
         }
         return;
       }
-
-      trackPurchase({
-        value: total,
-        contents: items.map((i) => ({
-          id: i.productId,
-          quantity: i.quantity,
-          price: i.price,
-        })),
-      });
 
       clearCart();
       router.push(`/checkout/success?order=${result.orderNumber}`);

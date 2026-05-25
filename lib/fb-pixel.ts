@@ -55,6 +55,11 @@ function track(eventName: string, params: PixelEventParams = {}) {
   window.fbq("track", eventName, payload);
 }
 
+export function trackPageView() {
+  if (typeof window === "undefined" || typeof window.fbq !== "function") return;
+  window.fbq("track", "PageView");
+}
+
 export function trackViewContent(p: {
   id: string;
   name: string;
