@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useCartStore } from "@/stores/cart-store";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { OrderSummary } from "@/components/checkout/order-summary";
@@ -7,9 +8,27 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import { trackInitiateCheckout } from "@/lib/fb-pixel";
 
 export default function CheckoutPage() {
   const itemCount = useCartStore((s) => s.getItemCount());
+  const items = useCartStore((s) => s.items);
+  const getTotal = useCartStore((s) => s.getTotal);
+  const fired = useRef(false);
+
+  // Fire InitiateCheckout once when the checkout page loads with items.
+  useEffect(() => {
+    if (fired.current || items.length === 0) return;
+    fired.current = true;
+    trackInitiateCheckout({
+      value: getTotal(),
+      contents: items.map((i) => ({
+        id: i.productId,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+    });
+  }, [items, getTotal]);
 
   if (itemCount === 0) {
     return (

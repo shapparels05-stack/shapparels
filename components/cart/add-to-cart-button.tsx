@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ShoppingBag, Minus, Plus, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cart-store";
+import { trackAddToCart } from "@/lib/fb-pixel";
 import { toast } from "sonner";
 
 interface AddToCartButtonProps {
@@ -76,6 +77,12 @@ export function AddToCartButton({
       variantLabel,
       quantity,
       maxStock: stock,
+    });
+    trackAddToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
     });
     setQuantity(1);
     return true;
