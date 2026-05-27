@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/shared/price-display";
+import { StarRating } from "@/components/reviews/star-rating";
 
 interface ProductCardProps {
   product: {
@@ -15,6 +16,8 @@ interface ProductCardProps {
     isFeatured: boolean;
     categoryName?: string | null;
     images: { url: string; alt: string | null }[];
+    ratingAverage?: number;
+    ratingCount?: number;
   };
 }
 
@@ -92,6 +95,12 @@ export function ProductCard({ product }: ProductCardProps) {
           {displayName}
         </h3>
         <PriceDisplay price={price} compareAtPrice={compareAt} />
+        {product.ratingCount ? (
+          <div className="flex items-center gap-1.5">
+            <StarRating value={product.ratingAverage ?? 0} size={12} />
+            <span className="text-xs text-muted-foreground">({product.ratingCount})</span>
+          </div>
+        ) : null}
       </div>
     </Link>
   );

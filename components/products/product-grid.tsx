@@ -10,6 +10,8 @@ interface Product {
   isFeatured: boolean;
   categoryName?: string | null;
   images: { url: string; alt: string | null }[];
+  ratingAverage?: number;
+  ratingCount?: number;
 }
 
 interface ProductGridProps {

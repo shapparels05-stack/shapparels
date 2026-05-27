@@ -2,7 +2,10 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getProductBySlug, getRelatedProducts } from "@/lib/db/queries/products";
+import { getProductRatingSummary } from "@/lib/db/queries/reviews";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { RatingSummary } from "@/components/reviews/rating-summary";
+import { ProductReviews } from "@/components/reviews/product-reviews";
 import { ProductImages } from "@/components/products/product-images";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
@@ -42,11 +45,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const relatedProducts = await getRelatedProducts(
-    product.id,
-    product.categoryId,
-    4
-  );
+  const [relatedProducts, ratingSummary] = await Promise.all([
+    getRelatedProducts(product.id, product.categoryId, 4),
+    getProductRatingSummary(product.id),
+  ]);
 
   const breadcrumbItems = [
     { label: "Shop", href: "/products" },
@@ -58,7 +60,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <ProductJsonLd product={product} siteUrl={SITE_URL} />
+      <ProductJsonLd product={product} siteUrl={SITE_URL} rating={ratingSummary} />
       <Breadcrumbs items={breadcrumbItems} />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
@@ -75,6 +77,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <h1 className="mt-1 font-serif text-3xl font-bold sm:text-4xl">
             {product.code ? `${product.code} - ${product.name}` : product.name}
           </h1>
+
+          <a href="#reviews" className="mt-3 inline-block">
+            <RatingSummary average={ratingSummary.average} count={ratingSummary.count} />
+          </a>
 
           {product.shortDescription && (
             <p className="mt-3 text-muted-foreground">
@@ -99,17 +105,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
-      {/* Description Tabs */}
-      {product.description && (
-        <div className="mt-12">
-          <Tabs defaultValue="description">
-            <TabsList>
+      {/* Description / Details / Reviews Tabs */}
+      <div id="reviews" className="mt-12 scroll-mt-24">
+        <Tabs defaultValue={product.description ? "description" : "reviews"}>
+          <TabsList>
+            {product.description && (
               <TabsTrigger value="description">Description</TabsTrigger>
+            )}
+            {product.description && (
               <TabsTrigger value="details">Details</TabsTrigger>
-            </TabsList>
+            )}
+            <TabsTrigger value="reviews">
+              Reviews{ratingSummary.count > 0 ? ` (${ratingSummary.count})` : ""}
+            </TabsTrigger>
+          </TabsList>
+
+          {product.description && (
             <TabsContent value="description" className="mt-4 prose prose-invert max-w-none text-muted-foreground">
               <div className="whitespace-pre-wrap">{product.description}</div>
             </TabsContent>
+          )}
+
+          {product.description && (
             <TabsContent value="details" className="mt-4">
               <dl className="space-y-2 text-sm">
                 {product.tags && product.tags.length > 0 && (
@@ -122,9 +139,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 )}
               </dl>
             </TabsContent>
-          </Tabs>
-        </div>
-      )}
+          )}
+
+          <TabsContent value="reviews" className="mt-6">
+            <ProductReviews
+              productId={product.id}
+              initialAverage={ratingSummary.average}
+              initialCount={ratingSummary.count}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (

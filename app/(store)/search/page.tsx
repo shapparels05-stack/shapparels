@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { products, productImages, categories } from "@/lib/db/schema";
 import { eq, and, or, ilike, desc, inArray } from "drizzle-orm";
 import { ProductGrid } from "@/components/products/product-grid";
+import { getRatingSummaries } from "@/lib/db/queries/reviews";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 
 interface SearchPageProps {
@@ -72,9 +73,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       imagesByProduct.set(img.productId, existing);
     }
 
+    const ratings = await getRatingSummaries(productIds);
+
     searchResults = results.map((p) => ({
       ...p,
       images: imagesByProduct.get(p.id) || [],
+      ratingAverage: ratings.get(p.id)?.average ?? 0,
+      ratingCount: ratings.get(p.id)?.count ?? 0,
     }));
   }
 

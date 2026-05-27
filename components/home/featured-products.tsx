@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { products, productImages, categories } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { ProductGrid } from "@/components/products/product-grid";
+import { getRatingSummaries } from "@/lib/db/queries/reviews";
 
 export async function FeaturedProducts() {
   const featuredProducts = await db
@@ -21,6 +22,8 @@ export async function FeaturedProducts() {
     .orderBy(desc(products.createdAt))
     .limit(8);
 
+  const ratings = await getRatingSummaries(featuredProducts.map((p) => p.id));
+
   // Fetch images for each product
   const productsWithImages = await Promise.all(
     featuredProducts.map(async (product) => {
@@ -31,7 +34,12 @@ export async function FeaturedProducts() {
         .orderBy(productImages.sortOrder)
         .limit(2);
 
-      return { ...product, images };
+      return {
+        ...product,
+        images,
+        ratingAverage: ratings.get(product.id)?.average ?? 0,
+        ratingCount: ratings.get(product.id)?.count ?? 0,
+      };
     })
   );
 

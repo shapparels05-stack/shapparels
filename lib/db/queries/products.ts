@@ -8,6 +8,7 @@ import {
   categories,
 } from "@/lib/db/schema";
 import { eq, and, desc, asc, ilike, or, sql, inArray } from "drizzle-orm";
+import { getRatingSummaries } from "@/lib/db/queries/reviews";
 
 export type ProductListItem = {
   id: string;
@@ -20,6 +21,8 @@ export type ProductListItem = {
   isFeatured: boolean;
   categoryName: string | null;
   images: { url: string; alt: string | null }[];
+  ratingAverage: number;
+  ratingCount: number;
 };
 
 interface GetProductsOptions {
@@ -128,9 +131,13 @@ export async function getProducts(options: GetProductsOptions = {}) {
     imagesByProduct.set(img.productId, existing);
   }
 
+  const ratings = await getRatingSummaries(productIds);
+
   const productsWithImages: ProductListItem[] = productList.map((p) => ({
     ...p,
     images: imagesByProduct.get(p.id) || [],
+    ratingAverage: ratings.get(p.id)?.average ?? 0,
+    ratingCount: ratings.get(p.id)?.count ?? 0,
   }));
 
   return {
@@ -239,8 +246,12 @@ export async function getRelatedProducts(productId: string, categoryId: string |
     imagesByProduct.set(img.productId, existing);
   }
 
+  const ratings = await getRatingSummaries(productIds);
+
   return related.map((p) => ({
     ...p,
     images: imagesByProduct.get(p.id) || [],
+    ratingAverage: ratings.get(p.id)?.average ?? 0,
+    ratingCount: ratings.get(p.id)?.count ?? 0,
   }));
 }
