@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Package } from "lucide-react";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
+import { ArchiveProductButton } from "@/components/admin/archive-product-button";
 
 export default async function AdminProductsPage() {
   const allProducts = await db
@@ -89,38 +90,45 @@ export default async function AdminProductsPage() {
       ) : (
         <div className="space-y-2">
           {allProducts.map((product) => (
-            <Link
+            <div
               key={product.id}
-              href={`/admin/products/${product.id}/edit`}
-              className="flex items-center gap-4 rounded-lg border border-border/50 p-4 hover:bg-accent transition-colors"
+              className={`group flex items-center gap-4 rounded-lg border border-border/50 p-4 transition-colors hover:bg-accent ${
+                !product.isActive ? "opacity-60" : ""
+              }`}
             >
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-card border border-border/50">
-                {imageMap.get(product.id) ? (
-                  <Image
-                    src={imageMap.get(product.id)!}
-                    alt={product.name}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                    No img
-                  </div>
-                )}
-              </div>
+              {/* Image + name area links to edit */}
+              <Link
+                href={`/admin/products/${product.id}/edit`}
+                className="flex flex-1 min-w-0 items-center gap-4"
+              >
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-card border border-border/50">
+                  {imageMap.get(product.id) ? (
+                    <Image
+                      src={imageMap.get(product.id)!}
+                      alt={product.name}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                      No img
+                    </div>
+                  )}
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{product.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {product.categoryName || "No category"} · Stock: {stockMap.has(product.id) ? stockMap.get(product.id) : product.stock}
-                </p>
-              </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{product.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {product.categoryName || "No category"} · Stock: {stockMap.has(product.id) ? stockMap.get(product.id) : product.stock}
+                  </p>
+                </div>
+              </Link>
 
               <div className="hidden sm:flex items-center gap-2">
                 {!product.isActive && (
-                  <Badge variant="secondary">Draft</Badge>
+                  <Badge variant="secondary">Archived</Badge>
                 )}
                 {product.isFeatured && (
                   <Badge className="bg-primary/10 text-primary">Featured</Badge>
@@ -133,8 +141,17 @@ export default async function AdminProductsPage() {
                 </p>
               </div>
 
-              <Edit className="h-4 w-4 text-muted-foreground shrink-0" />
-            </Link>
+              <div className="flex shrink-0 items-center gap-1">
+                <ArchiveProductButton productId={product.id} isActive={product.isActive} />
+                <Link
+                  href={`/admin/products/${product.id}/edit`}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+                  title="Edit product"
+                >
+                  <Edit className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}

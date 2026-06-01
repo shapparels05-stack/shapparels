@@ -131,6 +131,46 @@ export async function PUT(
   }
 }
 
+// Partial update — used by the admin list for quick toggles (archive,
+// feature flag) without sending the full product payload like PUT requires.
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { id } = await params;
+    const body = await request.json();
+
+    const updates: { isActive?: boolean; isFeatured?: boolean } = {};
+    if (typeof body.isActive === "boolean") updates.isActive = body.isActive;
+    if (typeof body.isFeatured === "boolean") updates.isFeatured = body.isFeatured;
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    }
+
+    const [updated] = await db
+      .update(products)
+      .set(updates)
+      .where(eq(products.id, id))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, product: updated });
+  } catch (error) {
+    console.error("Patch product error:", error);
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
