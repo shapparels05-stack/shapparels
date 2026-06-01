@@ -6,6 +6,7 @@ import { getProductRatingSummary } from "@/lib/db/queries/reviews";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { RatingSummary } from "@/components/reviews/rating-summary";
 import { ProductReviews } from "@/components/reviews/product-reviews";
+import { bucketDiscountPercent } from "@/lib/pricing";
 import { ProductImages } from "@/components/products/product-images";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
@@ -62,9 +63,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const basePrice = parseFloat(product.basePrice);
   const compareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
   const discountPercent =
-    compareAt && compareAt > basePrice && product.stock > 0
-      ? Math.round(((compareAt - basePrice) / compareAt) * 100)
-      : 0;
+    product.stock > 0 ? bucketDiscountPercent(basePrice, compareAt) : 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

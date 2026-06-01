@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { StarRating } from "@/components/reviews/star-rating";
+import { bucketDiscountPercent } from "@/lib/pricing";
 
 interface ProductCardProps {
   product: {
@@ -24,10 +25,8 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const price = parseFloat(product.basePrice);
   const compareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
-  const hasDiscount = compareAt && compareAt > price;
-  const discountPercent = hasDiscount && compareAt
-    ? Math.round(((compareAt - price) / compareAt) * 100)
-    : 0;
+  const discountPercent = bucketDiscountPercent(price, compareAt);
+  const hasDiscount = discountPercent > 0;
   const isSoldOut = product.stock <= 0;
   const displayName = product.code ? `${product.code} - ${product.name}` : product.name;
   const primaryImage = product.images[0];
