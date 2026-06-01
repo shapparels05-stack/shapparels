@@ -39,7 +39,7 @@ export function ProductImages({ images, productName, discountPercent }: ProductI
             variant="destructive"
             className="absolute left-3 top-3 z-10 px-3 py-1 text-base font-bold sm:text-lg"
           >
-            {discountPercent}% OFF
+            UPTO {discountPercent}% OFF
           </Badge>
         ) : null}
       </div>
