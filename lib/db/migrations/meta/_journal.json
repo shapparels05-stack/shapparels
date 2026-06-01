@@ -29,6 +29,13 @@
       "when": 1772187881599,
       "tag": "0003_add-nested-categories",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780313929869,
+      "tag": "0004_thin_blacklash",
+      "breakpoints": true
     }
   ]
 }
