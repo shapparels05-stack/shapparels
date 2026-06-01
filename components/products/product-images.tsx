@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 
 interface ProductImagesProps {
   images: { id: string; url: string; alt: string | null }[];
   productName: string;
+  discountPercent?: number;
 }
 
-export function ProductImages({ images, productName }: ProductImagesProps) {
+export function ProductImages({ images, productName, discountPercent }: ProductImagesProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (images.length === 0) {
@@ -32,6 +34,14 @@ export function ProductImages({ images, productName }: ProductImagesProps) {
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
         />
+        {discountPercent && discountPercent > 0 ? (
+          <Badge
+            variant="destructive"
+            className="absolute left-3 top-3 z-10 px-3 py-1 text-base font-bold sm:text-lg"
+          >
+            {discountPercent}% OFF
+          </Badge>
+        ) : null}
       </div>
 
       {/* Thumbnails */}

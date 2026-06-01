@@ -58,6 +58,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { label: product.name },
   ];
 
+  // Discount percent shown over the main image, matching the card badge.
+  const basePrice = parseFloat(product.basePrice);
+  const compareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
+  const discountPercent =
+    compareAt && compareAt > basePrice && product.stock > 0
+      ? Math.round(((compareAt - basePrice) / compareAt) * 100)
+      : 0;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <ProductJsonLd product={product} siteUrl={SITE_URL} rating={ratingSummary} />
@@ -65,7 +73,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         {/* Images */}
-        <ProductImages images={product.images} productName={product.name} />
+        <ProductImages
+          images={product.images}
+          productName={product.name}
+          discountPercent={discountPercent}
+        />
 
         {/* Product Info */}
         <div>
