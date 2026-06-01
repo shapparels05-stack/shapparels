@@ -77,7 +77,7 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
           {!isSoldOut && hasDiscount && (
             <Badge variant="destructive" className="text-xs font-semibold">
-              UPTO {discountPercent}% OFF
+              UP TO {discountPercent}% OFF
             </Badge>
           )}
           {!isSoldOut && product.isFeatured && (
