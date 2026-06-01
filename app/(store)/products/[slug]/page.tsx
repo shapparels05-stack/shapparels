@@ -112,32 +112,29 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.description && (
               <TabsTrigger value="description">Description</TabsTrigger>
             )}
-            {product.description && (
-              <TabsTrigger value="details">Details</TabsTrigger>
-            )}
             <TabsTrigger value="reviews">
               Reviews{ratingSummary.count > 0 ? ` (${ratingSummary.count})` : ""}
             </TabsTrigger>
           </TabsList>
 
           {product.description && (
-            <TabsContent value="description" className="mt-4 prose prose-invert max-w-none text-muted-foreground">
-              <div className="whitespace-pre-wrap">{product.description}</div>
-            </TabsContent>
-          )}
-
-          {product.description && (
-            <TabsContent value="details" className="mt-4">
-              <dl className="space-y-2 text-sm">
-                {product.tags && product.tags.length > 0 && (
-                  <div>
-                    <dt className="font-medium text-foreground">Tags</dt>
-                    <dd className="mt-1 text-muted-foreground">
-                      {product.tags.join(", ")}
-                    </dd>
-                  </div>
-                )}
-              </dl>
+            <TabsContent value="description" className="mt-4 space-y-4">
+              <div className="prose prose-invert max-w-none whitespace-pre-wrap text-muted-foreground">
+                {product.description}
+              </div>
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3">
+                  <span className="text-xs font-medium text-foreground">Tags:</span>
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-accent px-2.5 py-0.5 text-xs text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           )}
 
