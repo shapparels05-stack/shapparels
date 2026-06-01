@@ -2,15 +2,31 @@ import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { products, productImages, categories, productVariants } from "@/lib/db/schema";
-import { eq, desc, sql, inArray } from "drizzle-orm";
+import { eq, desc, sql, inArray, ilike, and } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Package } from "lucide-react";
 import { CURRENCY_SYMBOL } from "@/lib/constants";
 import { ArchiveProductButton } from "@/components/admin/archive-product-button";
+import { ProductSearchInput } from "@/components/admin/product-search-input";
+import { ProductStatusFilter } from "@/components/admin/product-status-filter";
 
-export default async function AdminProductsPage() {
+interface AdminProductsPageProps {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}
+
+export default async function AdminProductsPage({ searchParams }: AdminProductsPageProps) {
+  const { q, status } = await searchParams;
+  const query = q?.trim() ?? "";
+  const statusFilter: "all" | "active" | "archived" =
+    status === "active" || status === "archived" ? status : "all";
+
+  const conditions = [];
+  if (query) conditions.push(ilike(products.name, `%${query}%`));
+  if (statusFilter === "active") conditions.push(eq(products.isActive, true));
+  else if (statusFilter === "archived") conditions.push(eq(products.isActive, false));
+
   const allProducts = await db
     .select({
       id: products.id,
@@ -25,6 +41,7 @@ export default async function AdminProductsPage() {
     })
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(products.createdAt));
 
   // Fetch first image and total stock for each product
@@ -64,10 +81,14 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl font-bold">Products</h1>
-          <p className="text-muted-foreground">{allProducts.length} products</p>
+          <p className="text-muted-foreground">
+            {allProducts.length}
+            {statusFilter !== "all" ? ` ${statusFilter}` : ""}
+            {query ? ` matching "${query}"` : " products"}
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/products/new">
@@ -77,14 +98,28 @@ export default async function AdminProductsPage() {
         </Button>
       </div>
 
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <ProductSearchInput initialValue={query} />
+        <ProductStatusFilter value={statusFilter} />
+      </div>
+
       {allProducts.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="h-12 w-12 text-muted-foreground/30" />
-            <p className="mt-4 text-muted-foreground">No products yet</p>
-            <Button className="mt-4" asChild>
-              <Link href="/admin/products/new">Create your first product</Link>
-            </Button>
+            {query || statusFilter !== "all" ? (
+              <p className="mt-4 text-muted-foreground">
+                No {statusFilter !== "all" ? `${statusFilter} ` : ""}products
+                {query ? ` match “${query}”` : " found"}
+              </p>
+            ) : (
+              <>
+                <p className="mt-4 text-muted-foreground">No products yet</p>
+                <Button className="mt-4" asChild>
+                  <Link href="/admin/products/new">Create your first product</Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
