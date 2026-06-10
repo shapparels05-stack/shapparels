@@ -49,8 +49,6 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               className="object-cover object-[center_20%]"
               sizes="100vw"
             />
-            <div className="absolute inset-0 bg-black/20" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             {(slide.headline || slide.subheadline || slide.ctaLabel) && (
               <div className="relative z-10 mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center">
                 {slide.headline && (

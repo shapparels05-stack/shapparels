@@ -14,9 +14,6 @@ export function HeroBanner() {
         className="object-cover object-[center_20%]"
         sizes="100vw"
       />
-      {/* Overlay: light enough to show jewelry, text area has extra darkening */}
-      <div className="absolute inset-0 bg-black/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
         <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary">
