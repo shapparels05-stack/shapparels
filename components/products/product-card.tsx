@@ -3,7 +3,8 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { StarRating } from "@/components/reviews/star-rating";
-import { bucketDiscountPercent } from "@/lib/pricing";
+import { OfferCountdown } from "./offer-countdown";
+import { bucketDiscountPercent, activeCompareAtPrice, isLimitedOfferActive } from "@/lib/pricing";
 
 interface ProductCardProps {
   product: {
@@ -13,6 +14,7 @@ interface ProductCardProps {
     slug: string;
     basePrice: string;
     compareAtPrice: string | null;
+    saleEndsAt?: Date | string | null;
     stock: number;
     isFeatured: boolean;
     categoryName?: string | null;
@@ -24,9 +26,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const price = parseFloat(product.basePrice);
-  const compareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
+  const rawCompareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
+  // Drop the discount if its limited-time offer has already expired.
+  const compareAt = activeCompareAtPrice(rawCompareAt, product.saleEndsAt);
   const discountPercent = bucketDiscountPercent(price, compareAt);
   const hasDiscount = discountPercent > 0;
+  const limitedOffer = hasDiscount && isLimitedOfferActive(product.saleEndsAt);
   const isSoldOut = product.stock <= 0;
   const displayName = product.code ? `${product.code} - ${product.name}` : product.name;
   const primaryImage = product.images[0];
@@ -78,6 +83,9 @@ export function ProductCard({ product }: ProductCardProps) {
             <Badge variant="destructive" className="text-xs font-semibold">
               UP TO {discountPercent}% OFF
             </Badge>
+          )}
+          {!isSoldOut && limitedOffer && product.saleEndsAt && (
+            <OfferCountdown endsAt={product.saleEndsAt} variant="badge" />
           )}
           {!isSoldOut && product.isFeatured && (
             <Badge className="bg-primary text-primary-foreground text-xs">

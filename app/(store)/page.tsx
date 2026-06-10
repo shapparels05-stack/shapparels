@@ -1,5 +1,8 @@
-import { HeroBanner } from "@/components/home/hero-banner";
+import { HomeHero } from "@/components/home/home-hero";
+import { LimitedTimeDeals } from "@/components/home/limited-time-deals";
 import { FeaturedProducts } from "@/components/home/featured-products";
+import { NewArrivals } from "@/components/home/new-arrivals";
+import { BestSellers } from "@/components/home/best-sellers";
 import { CategoryGrid } from "@/components/home/category-grid";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,9 +31,18 @@ function ProductsSkeleton() {
 export default function HomePage() {
   return (
     <>
-      <HeroBanner />
+      <HomeHero />
+      <Suspense fallback={<ProductsSkeleton />}>
+        <LimitedTimeDeals />
+      </Suspense>
       <Suspense fallback={<ProductsSkeleton />}>
         <FeaturedProducts />
+      </Suspense>
+      <Suspense fallback={<ProductsSkeleton />}>
+        <NewArrivals />
+      </Suspense>
+      <Suspense fallback={<ProductsSkeleton />}>
+        <BestSellers />
       </Suspense>
       <Suspense fallback={<ProductsSkeleton />}>
         <CategoryGrid />

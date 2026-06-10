@@ -7,7 +7,7 @@ export function HeroBanner() {
     <section className="relative flex h-screen items-center justify-center overflow-hidden">
       {/* Background image */}
       <Image
-        src="/hero-image.png"
+        src="/hero-image.webp"
         alt=""
         fill
         priority
@@ -16,7 +16,7 @@ export function HeroBanner() {
       />
       {/* Overlay: light enough to show jewelry, text area has extra darkening */}
       <div className="absolute inset-0 bg-black/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
         <p className="text-sm font-medium uppercase tracking-[0.3em] text-primary">
@@ -34,7 +34,7 @@ export function HeroBanner() {
           <Button size="lg" asChild className="min-w-[160px]">
             <Link href="/products">Shop Now</Link>
           </Button>
-          <Button size="lg" variant="outline" asChild className="min-w-[160px] border-white/50 text-white hover:bg-white/10">
+          <Button size="lg" variant="outline" asChild className="min-w-[160px] border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white">
             <Link href="/about">Our Story</Link>
           </Button>
         </div>

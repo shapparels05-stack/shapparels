@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Minus, Plus, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PriceDisplay } from "@/components/shared/price-display";
 import { useCartStore } from "@/stores/cart-store";
 import { trackAddToCart } from "@/lib/fb-pixel";
 import { toast } from "sonner";
@@ -34,6 +36,10 @@ export function AddToCartButton({
 }: AddToCartButtonProps) {
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
+  // Track whether the inline buttons are scrolled out of view so we can
+  // reveal a sticky bottom bar in their place (mobile).
+  const inlineRef = useRef<HTMLDivElement>(null);
+  const [showStickyBar, setShowStickyBar] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const openSheet = useCartStore((s) => s.openSheet);
   const cartItems = useCartStore((s) => s.items);
@@ -46,6 +52,18 @@ export function AddToCartButton({
   const remaining = stock !== undefined ? stock - inCart : Infinity;
   const allInCart = stock !== undefined && remaining <= 0;
   const outOfStock = stock !== undefined && stock <= 0;
+
+  // Show the sticky bar only while the inline buttons are off-screen.
+  useEffect(() => {
+    const el = inlineRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const variantErrorMessage = missingOptionsLabel
     ? `Please select ${missingOptionsLabel} first`
@@ -131,32 +149,112 @@ export function AddToCartButton({
         )}
       </div>
 
-      {/* Add to Cart */}
-      <Button
-        size="lg"
-        className="w-full"
-        onClick={handleAddToCart}
-        disabled={outOfStock || allInCart}
-      >
-        <ShoppingBag className="mr-2 h-5 w-5" />
-        {outOfStock
-          ? "Out of Stock"
-          : allInCart
-          ? "All Stock in Cart"
-          : "Add to Cart"}
-      </Button>
+      {/* Inline actions */}
+      <div ref={inlineRef} className="space-y-3">
+        {/* Add to Cart */}
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={handleAddToCart}
+          disabled={outOfStock || allInCart}
+        >
+          <ShoppingBag className="mr-2 h-5 w-5" />
+          {outOfStock
+            ? "Out of Stock"
+            : allInCart
+            ? "All Stock in Cart"
+            : "Add to Cart"}
+        </Button>
 
-      {/* Checkout */}
-      <Button
-        size="lg"
-        variant="outline"
-        className="w-full"
-        onClick={handleCheckout}
-        disabled={outOfStock || allInCart}
+        {/* Checkout */}
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full"
+          onClick={handleCheckout}
+          disabled={outOfStock || allInCart}
+        >
+          <CreditCard className="mr-2 h-5 w-5" />
+          Checkout
+        </Button>
+      </div>
+
+      {/* Sticky bottom bar — appears on mobile once the inline buttons scroll
+          out of view, keeping the primary action reachable anywhere on the page. */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent pt-10 transition-transform duration-300 ${
+          showStickyBar ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <CreditCard className="mr-2 h-5 w-5" />
-        Checkout
-      </Button>
+        <div className="mx-auto flex max-w-4xl flex-col gap-2 px-4 pb-3 pr-20 sm:flex-row sm:items-center sm:gap-4 sm:pr-24">
+          {/* Left: product image + name + price + quantity counter */}
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="relative hidden h-14 w-14 shrink-0 overflow-hidden rounded-md border border-border sm:block">
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                sizes="56px"
+                className="object-cover"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{product.name}</p>
+              <PriceDisplay
+                price={product.price}
+                compareAtPrice={product.compareAtPrice}
+                className="text-sm"
+              />
+              <div className="mt-1 hidden w-fit items-center rounded-md border border-border sm:flex">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="flex h-7 w-7 items-center justify-center transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="flex h-7 w-8 items-center justify-center text-xs font-medium">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity(Math.min(quantity + 1, Math.max(remaining, 1)))}
+                  disabled={stock !== undefined && quantity >= remaining}
+                  className="flex h-7 w-7 items-center justify-center transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons — inline on mobile, stacked on desktop */}
+          <div className="flex shrink-0 flex-row gap-2 sm:flex-col">
+            <Button
+              size="sm"
+              className="flex-1 sm:flex-none"
+              onClick={handleAddToCart}
+              disabled={outOfStock || allInCart}
+            >
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              {outOfStock
+                ? "Out of Stock"
+                : allInCart
+                ? "All in Cart"
+                : "Add to Cart"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 sm:flex-none"
+              onClick={handleCheckout}
+              disabled={outOfStock || allInCart}
+            >
+              <CreditCard className="mr-2 h-4 w-4" />
+              Checkout
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

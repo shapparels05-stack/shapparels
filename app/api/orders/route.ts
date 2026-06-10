@@ -6,7 +6,8 @@ import { products, productVariants } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
-import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
+import { sendCapiEvents, capiContextFromRequest } from "@/lib/meta-capi";
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -154,6 +155,40 @@ export async function POST(request: NextRequest) {
       notes: parsed.data.notes || undefined,
       items: orderItems,
     });
+
+    // Server-side Purchase (Conversions API). Uses a deterministic event_id
+    // (purchase_<orderNumber>) matching the browser Pixel on the thank-you page
+    // so Meta deduplicates the two. Hashed customer data gives a strong match.
+    // Fire-and-forget so a CAPI hiccup never blocks the order response.
+    const [firstName, ...rest] = parsed.data.customerName.trim().split(/\s+/);
+    sendCapiEvents([
+      {
+        eventName: "Purchase",
+        eventId: `purchase_${orderNumber}`,
+        eventSourceUrl: request.headers.get("referer") || undefined,
+        userData: {
+          ...capiContextFromRequest(request),
+          email: parsed.data.customerEmail || null,
+          phone: parsed.data.customerPhone,
+          firstName: firstName || null,
+          lastName: rest.join(" ") || null,
+          city: parsed.data.shippingCity || null,
+          country: DEFAULT_COUNTRY,
+        },
+        customData: {
+          currency: CURRENCY,
+          value: Number(total.toFixed(2)),
+          content_type: "product",
+          contents: orderItems.map((i) => ({
+            id: i.productId,
+            quantity: i.quantity,
+            item_price: Number(i.price),
+          })),
+          content_ids: orderItems.map((i) => i.productId),
+          num_items: orderItems.reduce((s, i) => s + i.quantity, 0),
+        },
+      },
+    ]).catch(() => {});
 
     return NextResponse.json(
       { orderNumber: order.orderNumber, orderId: order.id },

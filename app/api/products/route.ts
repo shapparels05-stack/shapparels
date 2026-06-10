@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { products, productImages, productOptionTypes, productOptionValues, productVariants } from "@/lib/db/schema";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { productCreateSchema } from "@/lib/validators/product";
 
 export async function GET(request: NextRequest) {
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
         shortDescription: parsed.shortDescription,
         basePrice: parsed.basePrice.toString(),
         compareAtPrice: parsed.compareAtPrice?.toString() ?? null,
+        saleEndsAt: parsed.saleEndsAt ?? null,
         categoryId: parsed.categoryId ?? null,
         metaTitle: parsed.metaTitle,
         metaDescription: parsed.metaDescription,
@@ -108,6 +110,11 @@ export async function POST(request: NextRequest) {
         }))
       );
     }
+
+    // New product affects the homepage product sections + listing.
+    revalidatePath("/");
+    revalidatePath("/products");
+    if (product.slug) revalidatePath(`/products/${product.slug}`);
 
     return NextResponse.json(product, { status: 201 });
   } catch (error: any) {

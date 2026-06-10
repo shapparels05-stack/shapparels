@@ -11,6 +11,9 @@ export const products = pgTable("products", {
   shortDescription: text("short_description"),
   basePrice: numeric("base_price", { precision: 10, scale: 2 }).notNull(),
   compareAtPrice: numeric("compare_at_price", { precision: 10, scale: 2 }),
+  // When set, the compareAtPrice discount is a limited-time offer that expires
+  // at this moment (drives countdowns; discount auto-hides once past).
+  saleEndsAt: timestamp("sale_ends_at", { withTimezone: true }),
   categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),

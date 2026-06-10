@@ -23,7 +23,7 @@ export function PurchaseTracker({
     const key = `fb_purchase_${orderNumber}`;
     if (localStorage.getItem(key)) return;
     localStorage.setItem(key, "1");
-    trackPurchase({ value, contents });
+    trackPurchase({ orderNumber, value, contents });
   }, [orderNumber, value, contents]);
 
   return null;
