@@ -9,6 +9,7 @@ import { ProductReviews } from "@/components/reviews/product-reviews";
 import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
 import { ProductImages } from "@/components/products/product-images";
 import { ProductTrustBadges } from "@/components/products/product-trust-badges";
+import { CategoryGrid } from "@/components/home/category-grid";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
 import { ProductGrid } from "@/components/products/product-grid";
@@ -140,19 +141,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="prose prose-invert max-w-none whitespace-pre-wrap text-muted-foreground">
                 {product.description}
               </div>
-              {product.tags && product.tags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3">
-                  <span className="text-xs font-medium text-foreground">Tags:</span>
-                  {product.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-accent px-2.5 py-0.5 text-xs text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
             </TabsContent>
           )}
 
@@ -175,6 +163,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       )}
+
+      {/* Browse by Categories */}
+      <CategoryGrid />
     </div>
   );
 }

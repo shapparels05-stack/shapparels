@@ -3,7 +3,7 @@ import { LimitedTimeDeals } from "@/components/home/limited-time-deals";
 import { FeaturedProducts } from "@/components/home/featured-products";
 import { NewArrivals } from "@/components/home/new-arrivals";
 import { BestSellers } from "@/components/home/best-sellers";
-import { CategoryGrid } from "@/components/home/category-grid";
+import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -44,9 +44,9 @@ export default function HomePage() {
       <Suspense fallback={<ProductsSkeleton />}>
         <BestSellers />
       </Suspense>
-      <Suspense fallback={<ProductsSkeleton />}>
-        <CategoryGrid />
-      </Suspense>
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <ProductTrustBadges />
+      </section>
     </>
   );
 }

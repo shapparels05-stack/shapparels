@@ -50,6 +50,20 @@
       "when": 1781078033160,
       "tag": "0006_add_banners",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781084683538,
+      "tag": "0007_add_announcements",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1781086110203,
+      "tag": "0008_announcement_icon",
+      "breakpoints": true
     }
   ]
 }

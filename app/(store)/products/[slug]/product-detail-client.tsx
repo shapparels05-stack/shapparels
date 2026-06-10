@@ -154,12 +154,6 @@ export function ProductDetailClient({
         needsVariantSelection={needsVariantSelection}
         missingOptionsLabel={missingOptionsLabel}
       />
-
-      {needsVariantSelection && (
-        <p className="text-sm text-muted-foreground">
-          Please select all options to continue.
-        </p>
-      )}
     </div>
   );
 }

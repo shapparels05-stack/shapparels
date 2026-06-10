@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { X, ShoppingBag, Check } from "lucide-react";
@@ -11,6 +12,10 @@ const SHOW_MS = 6000; // how long each stays visible
 const GAP_MS = 9000; // hidden gap between popups
 
 export function SocialProofPopup() {
+  const pathname = usePathname();
+  // Show only on the products listing + product detail pages.
+  const onProductPages = pathname.startsWith("/products");
+
   const [items, setItems] = useState<SocialProofItem[]>([]);
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(false);
@@ -56,7 +61,7 @@ export function SocialProofPopup() {
     };
   }, [items, dismissed]);
 
-  if (dismissed || items.length === 0) return null;
+  if (!onProductPages || dismissed || items.length === 0) return null;
   const item = items[index];
 
   const dismiss = () => {
