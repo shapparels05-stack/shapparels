@@ -36,6 +36,20 @@
       "when": 1780313929869,
       "tag": "0004_thin_blacklash",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781075521290,
+      "tag": "0005_add_sale_ends_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781078033160,
+      "tag": "0006_add_banners",
+      "breakpoints": true
     }
   ]
 }

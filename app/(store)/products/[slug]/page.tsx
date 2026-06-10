@@ -6,8 +6,9 @@ import { getProductRatingSummary } from "@/lib/db/queries/reviews";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { RatingSummary } from "@/components/reviews/rating-summary";
 import { ProductReviews } from "@/components/reviews/product-reviews";
-import { bucketDiscountPercent } from "@/lib/pricing";
+import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
 import { ProductImages } from "@/components/products/product-images";
+import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
 import { ProductGrid } from "@/components/products/product-grid";
@@ -47,7 +48,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const [relatedProducts, ratingSummary] = await Promise.all([
-    getRelatedProducts(product.id, product.categoryId, 4),
+    getRelatedProducts(product.id, product.categoryId, 48),
     getProductRatingSummary(product.id),
   ]);
 
@@ -60,8 +61,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   ];
 
   // Discount percent shown over the main image, matching the card badge.
+  // An expired limited-time offer drops the discount entirely.
   const basePrice = parseFloat(product.basePrice);
-  const compareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
+  const rawCompareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
+  const compareAt = activeCompareAtPrice(rawCompareAt, product.saleEndsAt);
   const discountPercent =
     product.stock > 0 ? bucketDiscountPercent(basePrice, compareAt) : 0;
 
@@ -76,6 +79,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           images={product.images}
           productName={product.name}
           discountPercent={discountPercent}
+          code={product.code}
         />
 
         {/* Product Info */}
@@ -86,7 +90,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </p>
           )}
           <h1 className="mt-1 font-serif text-3xl font-bold sm:text-4xl">
-            {product.code ? `${product.code} - ${product.name}` : product.name}
+            {product.name}
           </h1>
 
           <a href="#reviews" className="mt-3 inline-block">
@@ -107,12 +111,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
               slug: product.slug,
               basePrice: product.basePrice,
               compareAtPrice: product.compareAtPrice,
+              saleEndsAt: product.saleEndsAt,
               stock: product.stock,
               image: product.images[0]?.url || "",
             }}
             optionTypes={product.optionTypes}
             variants={product.variants}
           />
+
+          <ProductTrustBadges />
         </div>
       </div>
 

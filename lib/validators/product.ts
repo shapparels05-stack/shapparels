@@ -8,6 +8,10 @@ export const productCreateSchema = z.object({
   shortDescription: z.string().optional(),
   basePrice: z.coerce.number().positive("Price must be positive"),
   compareAtPrice: z.coerce.number().positive().optional().nullable(),
+  saleEndsAt: z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    z.coerce.date().nullable().optional()
+  ),
   categoryId: z.string().uuid().optional().nullable(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),

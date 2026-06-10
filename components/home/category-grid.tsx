@@ -1,15 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { db } from "@/lib/db";
-import { categories } from "@/lib/db/schema";
-import { eq, asc, isNull, and } from "drizzle-orm";
+import { getTopLevelCategoriesWithThumbnails } from "@/lib/db/queries/categories";
 
 export async function CategoryGrid() {
-  const allCategories = await db
-    .select()
-    .from(categories)
-    .where(and(eq(categories.isActive, true), isNull(categories.parentId)))
-    .orderBy(asc(categories.sortOrder));
+  const allCategories = await getTopLevelCategoriesWithThumbnails();
 
   if (allCategories.length === 0) {
     return null;
@@ -42,7 +36,11 @@ export async function CategoryGrid() {
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               />
             ) : (
-              <div className="h-full w-full bg-card" />
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary via-card to-background">
+                <span className="font-serif text-4xl font-bold text-primary/40 transition-transform duration-500 group-hover:scale-110">
+                  {category.name.charAt(0)}
+                </span>
+              </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
             <div className="absolute inset-0 flex items-end p-4">

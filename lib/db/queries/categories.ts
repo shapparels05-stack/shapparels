@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { categories } from "@/lib/db/schema";
-import { eq, asc, isNull, inArray } from "drizzle-orm";
+import { categories, products, productImages } from "@/lib/db/schema";
+import { eq, and, asc, desc, isNull, inArray } from "drizzle-orm";
 
 export interface CategoryWithChildren {
   id: string;
@@ -82,6 +82,39 @@ export async function getCategoryWithAncestors(slug: string) {
   }
 
   return { category, ancestors };
+}
+
+// Top-level categories for the homepage grid, each resolved to a thumbnail:
+// the category's own image if set, otherwise a representative product image
+// pulled from anywhere in its subtree, otherwise null (styled placeholder).
+export async function getTopLevelCategoriesWithThumbnails() {
+  const cats = await db
+    .select({
+      id: categories.id,
+      name: categories.name,
+      slug: categories.slug,
+      image: categories.image,
+    })
+    .from(categories)
+    .where(and(eq(categories.isActive, true), isNull(categories.parentId)))
+    .orderBy(asc(categories.sortOrder));
+
+  return Promise.all(
+    cats.map(async (cat) => {
+      if (cat.image) return cat;
+
+      const subtreeIds = await getDescendantIds(cat.id); // includes cat.id
+      const [derived] = await db
+        .select({ url: productImages.url })
+        .from(productImages)
+        .innerJoin(products, eq(productImages.productId, products.id))
+        .where(and(eq(products.isActive, true), inArray(products.categoryId, subtreeIds)))
+        .orderBy(asc(productImages.sortOrder), desc(products.createdAt))
+        .limit(1);
+
+      return { ...cat, image: derived?.url ?? null };
+    })
+  );
 }
 
 export async function getDescendantIds(categoryId: string): Promise<string[]> {

@@ -8,9 +8,10 @@ interface ProductImagesProps {
   images: { id: string; url: string; alt: string | null }[];
   productName: string;
   discountPercent?: number;
+  code?: string | null;
 }
 
-export function ProductImages({ images, productName, discountPercent }: ProductImagesProps) {
+export function ProductImages({ images, productName, discountPercent, code }: ProductImagesProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (images.length === 0) {
@@ -40,6 +41,14 @@ export function ProductImages({ images, productName, discountPercent }: ProductI
             className="absolute left-3 top-3 z-10 px-3 py-1 text-base font-bold sm:text-lg"
           >
             UP TO {discountPercent}% OFF
+          </Badge>
+        ) : null}
+        {code ? (
+          <Badge
+            variant="secondary"
+            className="absolute right-3 top-3 z-10 px-3 py-1 text-base font-bold sm:text-lg"
+          >
+            {code}
           </Badge>
         ) : null}
       </div>

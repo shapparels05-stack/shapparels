@@ -6,9 +6,152 @@ import {
   productOptionTypes,
   productOptionValues,
   categories,
+  orders,
+  orderItems,
 } from "@/lib/db/schema";
-import { eq, and, desc, asc, ilike, or, sql, inArray } from "drizzle-orm";
+import { eq, ne, and, desc, asc, ilike, or, sql, inArray } from "drizzle-orm";
 import { getRatingSummaries } from "@/lib/db/queries/reviews";
+
+// Columns shared by the homepage product carousels.
+const homeProductColumns = {
+  id: products.id,
+  name: products.name,
+  slug: products.slug,
+  basePrice: products.basePrice,
+  compareAtPrice: products.compareAtPrice,
+  saleEndsAt: products.saleEndsAt,
+  stock: products.stock,
+  isFeatured: products.isFeatured,
+  categoryName: categories.name,
+};
+
+type HomeProductRow = {
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: string;
+  compareAtPrice: string | null;
+  saleEndsAt: Date | null;
+  stock: number;
+  isFeatured: boolean;
+  categoryName: string | null;
+};
+
+// Attach images (first two) and rating summaries to a set of product rows.
+async function hydrateProducts(rows: HomeProductRow[]) {
+  if (rows.length === 0) return [];
+  const ids = rows.map((r) => r.id);
+  const [images, ratings] = await Promise.all([
+    db
+      .select({
+        productId: productImages.productId,
+        url: productImages.url,
+        alt: productImages.alt,
+      })
+      .from(productImages)
+      .where(inArray(productImages.productId, ids))
+      .orderBy(productImages.sortOrder),
+    getRatingSummaries(ids),
+  ]);
+
+  const imagesByProduct = new Map<string, { url: string; alt: string | null }[]>();
+  for (const img of images) {
+    const existing = imagesByProduct.get(img.productId) || [];
+    existing.push({ url: img.url, alt: img.alt });
+    imagesByProduct.set(img.productId, existing);
+  }
+
+  return rows.map((p) => ({
+    ...p,
+    images: imagesByProduct.get(p.id) || [],
+    ratingAverage: ratings.get(p.id)?.average ?? 0,
+    ratingCount: ratings.get(p.id)?.count ?? 0,
+  }));
+}
+
+// Newest active products.
+export async function getNewArrivals(limit = 8) {
+  const rows = await db
+    .select(homeProductColumns)
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(eq(products.isActive, true))
+    .orderBy(desc(products.createdAt))
+    .limit(limit);
+  return hydrateProducts(rows);
+}
+
+// Top sellers by units sold across non-cancelled orders. Falls back to
+// featured/newest products when there aren't enough real sales yet, so the
+// section never renders empty on a young store.
+export async function getBestSellers(limit = 8) {
+  const ranked = await db
+    .select({
+      productId: orderItems.productId,
+      sold: sql<number>`sum(${orderItems.quantity})`,
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(and(sql`${orderItems.productId} is not null`, ne(orders.status, "cancelled")))
+    .groupBy(orderItems.productId)
+    .orderBy(desc(sql`sum(${orderItems.quantity})`))
+    .limit(limit);
+
+  const rankedIds = ranked.map((r) => r.productId).filter(Boolean) as string[];
+
+  let bestRows: HomeProductRow[] = [];
+  if (rankedIds.length > 0) {
+    const rows = await db
+      .select(homeProductColumns)
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(eq(products.isActive, true), inArray(products.id, rankedIds)));
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    // Preserve sales ranking order.
+    bestRows = rankedIds.map((id) => byId.get(id)).filter(Boolean) as HomeProductRow[];
+  }
+
+  if (bestRows.length < limit) {
+    const have = new Set(bestRows.map((r) => r.id));
+    const fillRows = await db
+      .select(homeProductColumns)
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(eq(products.isActive, true))
+      .orderBy(desc(products.isFeatured), desc(products.createdAt))
+      .limit(limit * 2);
+    for (const row of fillRows) {
+      if (bestRows.length >= limit) break;
+      if (!have.has(row.id)) {
+        bestRows.push(row);
+        have.add(row.id);
+      }
+    }
+  }
+
+  return hydrateProducts(bestRows);
+}
+
+// Active limited-time offers: discounted, in stock, with a deadline still in
+// the future. Ordered by soonest-ending first to maximise urgency.
+export async function getLimitedTimeDeals(limit = 8) {
+  const rows = await db
+    .select(homeProductColumns)
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(
+      and(
+        eq(products.isActive, true),
+        sql`${products.saleEndsAt} is not null`,
+        sql`${products.saleEndsAt} > now()`,
+        sql`${products.compareAtPrice} is not null`,
+        sql`CAST(${products.compareAtPrice} AS DECIMAL) > CAST(${products.basePrice} AS DECIMAL)`
+      )
+    )
+    .orderBy(asc(products.saleEndsAt))
+    .limit(limit);
+  return hydrateProducts(rows);
+}
 
 export type ProductListItem = {
   id: string;
@@ -17,6 +160,7 @@ export type ProductListItem = {
   slug: string;
   basePrice: string;
   compareAtPrice: string | null;
+  saleEndsAt: Date | null;
   stock: number;
   isFeatured: boolean;
   categoryName: string | null;
@@ -93,6 +237,7 @@ export async function getProducts(options: GetProductsOptions = {}) {
         slug: products.slug,
         basePrice: products.basePrice,
         compareAtPrice: products.compareAtPrice,
+        saleEndsAt: products.saleEndsAt,
         stock: products.stock,
         isFeatured: products.isFeatured,
         categoryName: categories.name,
@@ -215,6 +360,7 @@ export async function getRelatedProducts(productId: string, categoryId: string |
       slug: products.slug,
       basePrice: products.basePrice,
       compareAtPrice: products.compareAtPrice,
+      saleEndsAt: products.saleEndsAt,
       stock: products.stock,
       isFeatured: products.isFeatured,
       categoryName: categories.name,

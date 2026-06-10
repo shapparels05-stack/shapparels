@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { VariantSelector } from "@/components/products/variant-selector";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
+import { OfferCountdown } from "@/components/products/offer-countdown";
+import { activeCompareAtPrice, isLimitedOfferActive } from "@/lib/pricing";
 import { trackViewContent } from "@/lib/fb-pixel";
 
 interface OptionType {
@@ -28,6 +30,7 @@ interface ProductDetailClientProps {
     slug: string;
     basePrice: string;
     compareAtPrice: string | null;
+    saleEndsAt?: Date | string | null;
     stock: number;
     image: string;
   };
@@ -78,11 +81,17 @@ export function ProductDetailClient({
     ? parseFloat(selectedVariant.price)
     : parseFloat(product.basePrice);
 
-  const displayCompareAt = selectedVariant?.compareAtPrice
+  const rawCompareAt = selectedVariant?.compareAtPrice
     ? parseFloat(selectedVariant.compareAtPrice)
     : product.compareAtPrice
     ? parseFloat(product.compareAtPrice)
     : null;
+  // Expire the discount once the limited-time offer's deadline passes.
+  const displayCompareAt = activeCompareAtPrice(rawCompareAt, product.saleEndsAt);
+  const limitedOffer =
+    !!displayCompareAt &&
+    displayCompareAt > displayPrice &&
+    isLimitedOfferActive(product.saleEndsAt);
 
   const variantLabel = useMemo(() => {
     if (!selectedVariant || optionTypes.length === 0) return null;
@@ -113,6 +122,15 @@ export function ProductDetailClient({
         compareAtPrice={displayCompareAt}
         className="text-2xl"
       />
+
+      {limitedOffer && product.saleEndsAt && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+          <p className="mb-2 text-sm font-semibold text-destructive">
+            ⚡ Limited-time offer ends in
+          </p>
+          <OfferCountdown endsAt={product.saleEndsAt} variant="full" />
+        </div>
+      )}
 
       <VariantSelector
         optionTypes={optionTypes}

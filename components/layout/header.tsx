@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { NAV_LINKS, SITE_NAME } from "@/lib/constants";
 import { useCartStore } from "@/stores/cart-store";
 import { MobileNav } from "./mobile-nav";
+import { ThemeToggle } from "./theme-toggle";
 import { SearchBar } from "@/components/products/search-bar";
 import { useState, useEffect, useRef } from "react";
 
@@ -139,6 +140,8 @@ export function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <SearchBar />
+
+          <ThemeToggle />
 
           <Button variant="ghost" size="icon" className="relative" asChild>
             <Link href="/cart">

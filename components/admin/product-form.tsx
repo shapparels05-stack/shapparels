@@ -37,6 +37,16 @@ interface ProductFormProps {
   initialData?: any;
 }
 
+// Format a stored timestamp into the value a <input type="datetime-local">
+// expects (local time, "YYYY-MM-DDTHH:mm").
+function toDatetimeLocal(value: string | Date | null | undefined): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
 export function ProductForm({ categories, initialData }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -139,6 +149,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
       compareAtPrice: formData.get("compareAtPrice")
         ? parseFloat(formData.get("compareAtPrice") as string)
         : null,
+      saleEndsAt: (formData.get("saleEndsAt") as string) || null,
       stock: parseInt(formData.get("stock") as string) || 0,
       categoryId: formData.get("categoryId") as string || null,
       metaTitle: formData.get("metaTitle") as string,
@@ -277,6 +288,19 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
               defaultValue={initialData?.stock ?? 0}
             />
             <p className="text-xs text-muted-foreground">Used when no variants are added</p>
+          </div>
+          <div className="space-y-2 sm:col-span-3">
+            <Label htmlFor="saleEndsAt">Limited-Time Offer Ends</Label>
+            <Input
+              id="saleEndsAt"
+              name="saleEndsAt"
+              type="datetime-local"
+              defaultValue={toDatetimeLocal(initialData?.saleEndsAt)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional. When set with a Compare At Price, a countdown shows and the
+              discount expires automatically at this time. Leave blank for a permanent markdown.
+            </p>
           </div>
         </CardContent>
       </Card>

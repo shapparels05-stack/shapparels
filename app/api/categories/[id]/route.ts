@@ -4,6 +4,7 @@ import { categories } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   request: NextRequest,
@@ -71,6 +72,7 @@ export async function PUT(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  revalidatePath("/");
   return NextResponse.json(updated);
 }
 
@@ -87,5 +89,6 @@ export async function DELETE(
 
   await db.delete(categories).where(eq(categories.id, id));
 
+  revalidatePath("/");
   return NextResponse.json({ success: true });
 }

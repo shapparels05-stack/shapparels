@@ -5,6 +5,7 @@ import { categories } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const allCategories = await getCategories();
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
+    revalidatePath("/"); // homepage category grid
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     console.error("Category create error:", error);

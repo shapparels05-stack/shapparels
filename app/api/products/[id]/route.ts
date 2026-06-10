@@ -4,6 +4,15 @@ import { products, productImages, productOptionTypes, productOptionValues, produ
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
+
+// Refresh the static homepage + listing and the product's own (ISR-cached)
+// detail page after a change, so edits show up immediately.
+function revalidateProduct(slug?: string | null) {
+  revalidatePath("/");
+  revalidatePath("/products");
+  if (slug) revalidatePath(`/products/${slug}`);
+}
 
 export async function GET(
   request: NextRequest,
@@ -45,6 +54,7 @@ export async function PUT(
         shortDescription: body.shortDescription,
         basePrice: body.basePrice?.toString(),
         compareAtPrice: body.compareAtPrice?.toString() ?? null,
+        saleEndsAt: body.saleEndsAt ? new Date(body.saleEndsAt) : null,
         categoryId: body.categoryId || null,
         metaTitle: body.metaTitle,
         metaDescription: body.metaDescription,
@@ -124,6 +134,7 @@ export async function PUT(
       }
     }
 
+    revalidateProduct(updated.slug);
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Product update error:", error);
@@ -164,6 +175,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
+    revalidateProduct(updated.slug);
     return NextResponse.json({ success: true, product: updated });
   } catch (error) {
     console.error("Patch product error:", error);
@@ -182,7 +194,14 @@ export async function DELETE(
 
   const { id } = await params;
 
+  const [existing] = await db
+    .select({ slug: products.slug })
+    .from(products)
+    .where(eq(products.id, id))
+    .limit(1);
+
   await db.delete(products).where(eq(products.id, id));
 
+  revalidateProduct(existing?.slug);
   return NextResponse.json({ success: true });
 }
