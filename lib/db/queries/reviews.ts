@@ -27,6 +27,33 @@ export async function createReview(data: {
   return review;
 }
 
+// Public: a handful of strong approved reviews across the whole store, for the
+// homepage reviews carousel. Highest-rated first, then most recent.
+export async function getFeaturedReviews(limit = 8) {
+  return db
+    .select({
+      id: reviews.id,
+      rating: reviews.rating,
+      title: reviews.title,
+      body: reviews.body,
+      authorName: reviews.authorName,
+      createdAt: reviews.createdAt,
+      productName: products.name,
+      productSlug: products.slug,
+    })
+    .from(reviews)
+    .innerJoin(products, eq(reviews.productId, products.id))
+    .where(
+      and(
+        eq(reviews.status, "approved"),
+        eq(products.isActive, true),
+        sql`${reviews.rating} >= 4`
+      )
+    )
+    .orderBy(desc(reviews.rating), desc(reviews.createdAt))
+    .limit(limit);
+}
+
 // Public: approved reviews for a single product, paginated.
 export async function getApprovedReviews(
   productId: string,
