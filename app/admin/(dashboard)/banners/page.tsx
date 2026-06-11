@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageUpload } from "@/components/admin/image-upload";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
@@ -15,6 +22,7 @@ interface Banner {
   id: string;
   imageUrl: string;
   mobileImageUrl: string | null;
+  textColor: string;
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -28,6 +36,7 @@ type Draft = Omit<Banner, "id">;
 const emptyDraft: Draft = {
   imageUrl: "",
   mobileImageUrl: "",
+  textColor: "light",
   headline: "",
   subheadline: "",
   ctaLabel: "",
@@ -61,6 +70,7 @@ export default function AdminBannersPage() {
     setDraft({
       imageUrl: b.imageUrl,
       mobileImageUrl: b.mobileImageUrl || "",
+      textColor: b.textColor || "light",
       headline: b.headline || "",
       subheadline: b.subheadline || "",
       ctaLabel: b.ctaLabel || "",
@@ -181,6 +191,21 @@ export default function AdminBannersPage() {
               onChange={(e) => setDraft((d) => ({ ...d, ctaHref: e.target.value }))}
               placeholder="/products or /category/jewelry"
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Text Color</Label>
+            <Select
+              value={draft.textColor}
+              onValueChange={(v) => setDraft((d) => ({ ...d, textColor: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light (for dark images)</SelectItem>
+                <SelectItem value="dark">Dark (for light images)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label>Sort Order</Label>

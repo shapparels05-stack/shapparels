@@ -1,0 +1,1 @@
+ALTER TABLE "banners" ADD COLUMN "text_color" text DEFAULT 'light' NOT NULL;

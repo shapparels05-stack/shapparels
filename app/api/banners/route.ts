@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       .values({
         imageUrl: body.imageUrl,
         mobileImageUrl: body.mobileImageUrl || null,
+        textColor: body.textColor === "dark" ? "dark" : "light",
         headline: body.headline || null,
         subheadline: body.subheadline || null,
         ctaLabel: body.ctaLabel || null,

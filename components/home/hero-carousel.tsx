@@ -10,6 +10,7 @@ export interface HeroSlide {
   id: string;
   imageUrl: string;
   mobileImageUrl: string | null;
+  textColor: string; // "light" | "dark"
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -37,6 +38,10 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   return (
     <section className="relative h-screen overflow-hidden">
       {slides.map((slide, i) => {
+        // Near-black for light images, white for dark images (per slide).
+        const dark = slide.textColor === "dark";
+        const headlineColor = dark ? "text-neutral-900" : "text-white drop-shadow-lg";
+        const subColor = dark ? "text-neutral-800" : "text-white/85 drop-shadow-md";
         const content = (
           <>
             {/* Desktop image */}
@@ -65,12 +70,16 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             {(slide.headline || slide.subheadline || slide.ctaLabel) && (
               <div className="relative z-10 mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center">
                 {slide.headline && (
-                  <h2 className="font-serif text-5xl font-bold tracking-tight text-white drop-shadow-lg sm:text-6xl md:text-7xl">
+                  <h2
+                    className={`font-serif text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl ${headlineColor}`}
+                  >
                     {slide.headline}
                   </h2>
                 )}
                 {slide.subheadline && (
-                  <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80 drop-shadow-md">
+                  <p
+                    className={`mx-auto mt-4 max-w-2xl text-base sm:mt-6 sm:text-lg ${subColor}`}
+                  >
                     {slide.subheadline}
                   </p>
                 )}

@@ -17,6 +17,7 @@ export async function HomeHero() {
         id: b.id,
         imageUrl: b.imageUrl,
         mobileImageUrl: b.mobileImageUrl,
+        textColor: b.textColor,
         headline: b.headline,
         subheadline: b.subheadline,
         ctaLabel: b.ctaLabel,

@@ -5,6 +5,7 @@ export const banners = pgTable("banners", {
   id: uuid("id").primaryKey().defaultRandom(),
   imageUrl: text("image_url").notNull(), // desktop / wide
   mobileImageUrl: text("mobile_image_url"), // optional portrait crop for phones
+  textColor: text("text_color").notNull().default("light"), // "light" | "dark"
   headline: text("headline"),
   subheadline: text("subheadline"),
   ctaLabel: text("cta_label"),
