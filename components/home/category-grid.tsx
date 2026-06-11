@@ -42,9 +42,8 @@ export async function CategoryGrid() {
                 </span>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
             <div className="absolute inset-0 flex items-end p-4">
-              <h3 className="font-serif text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+              <h3 className="font-serif text-sm font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] transition-colors group-hover:text-primary">
                 {category.name}
               </h3>
             </div>

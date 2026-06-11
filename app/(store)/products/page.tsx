@@ -4,7 +4,6 @@ import { getProducts } from "@/lib/db/queries/products";
 import { getCategories } from "@/lib/db/queries/categories";
 import { ProductGrid } from "@/components/products/product-grid";
 import { ProductFilters } from "@/components/products/product-filters";
-import { CategoryGrid } from "@/components/home/category-grid";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -94,11 +93,6 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           )}
         </div>
       </div>
-
-      {/* Browse by Categories */}
-      <Suspense fallback={null}>
-        <CategoryGrid />
-      </Suspense>
     </div>
   );
 }

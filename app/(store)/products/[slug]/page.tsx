@@ -12,7 +12,7 @@ import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { CategoryGrid } from "@/components/home/category-grid";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
-import { ProductGrid } from "@/components/products/product-grid";
+import { RelatedProducts } from "@/components/products/related-products";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SITE_URL } from "@/lib/constants";
@@ -159,7 +159,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="mt-16">
           <h2 className="font-serif text-2xl font-bold">You May Also Like</h2>
           <div className="mt-6">
-            <ProductGrid products={relatedProducts} />
+            <RelatedProducts products={relatedProducts} />
           </div>
         </div>
       )}

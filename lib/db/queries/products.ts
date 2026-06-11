@@ -81,10 +81,27 @@ export async function getNewArrivals(limit = 8) {
   return hydrateProducts(rows);
 }
 
-// Top sellers by units sold across non-cancelled orders. Falls back to
-// featured/newest products when there aren't enough real sales yet, so the
-// section never renders empty on a young store.
+// Best sellers: admin-flagged products first (isBestSeller), then topped up by
+// real units sold across non-cancelled orders, then featured/newest — so the
+// section reflects manual picks but never renders empty.
 export async function getBestSellers(limit = 8) {
+  // 1. Manually flagged best sellers, newest first.
+  const flaggedRows = await db
+    .select(homeProductColumns)
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .where(and(eq(products.isActive, true), eq(products.isBestSeller, true)))
+    .orderBy(desc(products.createdAt))
+    .limit(limit);
+
+  let bestRows: HomeProductRow[] = [...flaggedRows];
+  if (bestRows.length >= limit) {
+    return hydrateProducts(bestRows.slice(0, limit));
+  }
+
+  const flaggedIds = new Set(bestRows.map((r) => r.id));
+
+  // 2. Top up with real top sellers by units sold (excluding already-included).
   const ranked = await db
     .select({
       productId: orderItems.productId,
@@ -97,9 +114,10 @@ export async function getBestSellers(limit = 8) {
     .orderBy(desc(sql`sum(${orderItems.quantity})`))
     .limit(limit);
 
-  const rankedIds = ranked.map((r) => r.productId).filter(Boolean) as string[];
+  const rankedIds = ranked
+    .map((r) => r.productId)
+    .filter((id): id is string => id !== null && !flaggedIds.has(id));
 
-  let bestRows: HomeProductRow[] = [];
   if (rankedIds.length > 0) {
     const rows = await db
       .select(homeProductColumns)
@@ -107,8 +125,12 @@ export async function getBestSellers(limit = 8) {
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .where(and(eq(products.isActive, true), inArray(products.id, rankedIds)));
     const byId = new Map(rows.map((r) => [r.id, r]));
-    // Preserve sales ranking order.
-    bestRows = rankedIds.map((id) => byId.get(id)).filter(Boolean) as HomeProductRow[];
+    // Append in sales-ranking order, after the flagged picks.
+    for (const id of rankedIds) {
+      if (bestRows.length >= limit) break;
+      const row = byId.get(id);
+      if (row) bestRows.push(row);
+    }
   }
 
   if (bestRows.length < limit) {

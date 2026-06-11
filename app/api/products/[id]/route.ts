@@ -60,6 +60,7 @@ export async function PUT(
         metaDescription: body.metaDescription,
         stock: body.stock,
         isFeatured: body.isFeatured,
+        isBestSeller: body.isBestSeller,
         isActive: body.isActive,
         tags: body.tags,
       })

@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
         metaDescription: parsed.metaDescription,
         stock: parsed.stock,
         isFeatured: parsed.isFeatured,
+        isBestSeller: parsed.isBestSeller,
         isActive: parsed.isActive,
         tags: parsed.tags,
       })

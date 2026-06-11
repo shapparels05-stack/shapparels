@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Edit, Trash2, Save, X, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/admin/image-upload";
 
 interface Category {
   id: string;
@@ -65,6 +66,8 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [newParentId, setNewParentId] = useState<string>("");
   const [editParentId, setEditParentId] = useState<string>("");
+  const [newImage, setNewImage] = useState<string>("");
+  const [editImage, setEditImage] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/categories")
@@ -88,6 +91,7 @@ export default function AdminCategoriesPage() {
       description: formData.get("description") as string,
       sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
       parentId: newParentId && newParentId !== "none" ? newParentId : null,
+      image: newImage || null,
     };
 
     const res = await fetch("/api/categories", {
@@ -101,6 +105,7 @@ export default function AdminCategoriesPage() {
       setCategories([...categories, newCat]);
       setShowNew(false);
       setNewParentId("");
+      setNewImage("");
       toast.success("Category created");
     } else {
       const err = await res.json();
@@ -117,6 +122,7 @@ export default function AdminCategoriesPage() {
       description: formData.get("description") as string,
       sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
       parentId: editParentId && editParentId !== "none" ? editParentId : null,
+      image: editImage || null,
     };
 
     const res = await fetch(`/api/categories/${id}`, {
@@ -130,6 +136,7 @@ export default function AdminCategoriesPage() {
       setCategories(categories.map((c) => (c.id === id ? updated : c)));
       setEditing(null);
       setEditParentId("");
+      setEditImage("");
       toast.success("Category updated");
     } else {
       const err = await res.json();
@@ -202,9 +209,19 @@ export default function AdminCategoriesPage() {
                 <Label>Description</Label>
                 <Textarea name="description" defaultValue={cat.description || ""} rows={2} />
               </div>
+              <div className="space-y-2">
+                <Label>Category Image</Label>
+                <ImageUpload
+                  images={editImage ? [editImage] : []}
+                  onChange={(imgs) => setEditImage(imgs[imgs.length - 1] || "")}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Shown on the category tiles. If left empty, a product image from this category is used as a fallback.
+                </p>
+              </div>
               <div className="flex gap-2">
                 <Button type="submit" size="sm">Save</Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => { setEditing(null); setEditParentId(""); }}>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setEditing(null); setEditParentId(""); setEditImage(""); }}>
                   Cancel
                 </Button>
               </div>
@@ -230,7 +247,7 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => { setEditing(cat.id); setEditParentId(cat.parentId || "none"); }}>
+          <Button variant="ghost" size="icon" onClick={() => { setEditing(cat.id); setEditParentId(cat.parentId || "none"); setEditImage(cat.image || ""); }}>
             <Edit className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => handleDelete(cat.id)}>
@@ -311,12 +328,22 @@ export default function AdminCategoriesPage() {
                 <Label htmlFor="new-desc">Description</Label>
                 <Textarea id="new-desc" name="description" rows={2} />
               </div>
+              <div className="space-y-2">
+                <Label>Category Image</Label>
+                <ImageUpload
+                  images={newImage ? [newImage] : []}
+                  onChange={(imgs) => setNewImage(imgs[imgs.length - 1] || "")}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Shown on the category tiles. If left empty, a product image from this category is used as a fallback.
+                </p>
+              </div>
               <div className="flex gap-2">
                 <Button type="submit" size="sm">
                   <Save className="mr-2 h-4 w-4" />
                   Save
                 </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => { setShowNew(false); setNewParentId(""); }}>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setShowNew(false); setNewParentId(""); setNewImage(""); }}>
                   <X className="mr-2 h-4 w-4" />
                   Cancel
                 </Button>

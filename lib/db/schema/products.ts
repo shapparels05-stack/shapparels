@@ -19,6 +19,7 @@ export const products = pgTable("products", {
   metaDescription: text("meta_description"),
   stock: integer("stock").notNull().default(0),
   isFeatured: boolean("is_featured").notNull().default(false),
+  isBestSeller: boolean("is_best_seller").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   tags: jsonb("tags").$type<string[]>().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

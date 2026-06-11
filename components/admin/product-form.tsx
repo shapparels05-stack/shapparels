@@ -155,6 +155,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
       metaTitle: formData.get("metaTitle") as string,
       metaDescription: formData.get("metaDescription") as string,
       isFeatured: formData.get("isFeatured") === "on",
+      isBestSeller: formData.get("isBestSeller") === "on",
       isActive: formData.get("isActive") === "on",
       tags: (formData.get("tags") as string)
         .split(",")
@@ -344,6 +345,14 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                 defaultChecked={initialData?.isFeatured}
               />
               <Label htmlFor="isFeatured">Featured Product</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="isBestSeller"
+                name="isBestSeller"
+                defaultChecked={initialData?.isBestSeller}
+              />
+              <Label htmlFor="isBestSeller">Best Seller</Label>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
