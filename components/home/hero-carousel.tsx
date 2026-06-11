@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 export interface HeroSlide {
   id: string;
   imageUrl: string;
+  mobileImageUrl: string | null;
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -38,6 +39,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
       {slides.map((slide, i) => {
         const content = (
           <>
+            {/* Desktop image */}
             <Image
               src={slide.imageUrl}
               alt={slide.headline || ""}
@@ -46,7 +48,18 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               // the rest lazy-load as the carousel advances.
               priority={i === 0}
               loading={i === 0 ? "eager" : "lazy"}
-              className="object-cover object-[center_20%]"
+              className="hidden object-cover object-[center_20%] sm:block"
+              sizes="100vw"
+            />
+            {/* Mobile image — separate portrait crop so phones don't cut it.
+                Falls back to the desktop image when none is set. */}
+            <Image
+              src={slide.mobileImageUrl || slide.imageUrl}
+              alt={slide.headline || ""}
+              fill
+              priority={i === 0}
+              loading={i === 0 ? "eager" : "lazy"}
+              className="object-cover object-center sm:hidden"
               sizes="100vw"
             />
             {(slide.headline || slide.subheadline || slide.ctaLabel) && (

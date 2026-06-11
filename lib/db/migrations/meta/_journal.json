@@ -64,6 +64,13 @@
       "when": 1781086110203,
       "tag": "0008_announcement_icon",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781152615128,
+      "tag": "0009_banner_mobile_image",
+      "breakpoints": true
     }
   ]
 }

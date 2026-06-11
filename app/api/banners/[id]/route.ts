@@ -23,6 +23,7 @@ export async function PUT(
       .update(banners)
       .set({
         imageUrl: body.imageUrl,
+        mobileImageUrl: body.mobileImageUrl || null,
         headline: body.headline || null,
         subheadline: body.subheadline || null,
         ctaLabel: body.ctaLabel || null,

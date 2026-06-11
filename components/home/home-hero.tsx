@@ -16,6 +16,7 @@ export async function HomeHero() {
       slides={banners.map((b) => ({
         id: b.id,
         imageUrl: b.imageUrl,
+        mobileImageUrl: b.mobileImageUrl,
         headline: b.headline,
         subheadline: b.subheadline,
         ctaLabel: b.ctaLabel,

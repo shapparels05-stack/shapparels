@@ -14,6 +14,7 @@ import { toast } from "sonner";
 interface Banner {
   id: string;
   imageUrl: string;
+  mobileImageUrl: string | null;
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -26,6 +27,7 @@ type Draft = Omit<Banner, "id">;
 
 const emptyDraft: Draft = {
   imageUrl: "",
+  mobileImageUrl: "",
   headline: "",
   subheadline: "",
   ctaLabel: "",
@@ -58,6 +60,7 @@ export default function AdminBannersPage() {
   const startEdit = (b: Banner) => {
     setDraft({
       imageUrl: b.imageUrl,
+      mobileImageUrl: b.mobileImageUrl || "",
       headline: b.headline || "",
       subheadline: b.subheadline || "",
       ctaLabel: b.ctaLabel || "",
@@ -121,15 +124,29 @@ export default function AdminBannersPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Slide Image *</Label>
-          <ImageUpload
-            images={draft.imageUrl ? [draft.imageUrl] : []}
-            onChange={(imgs) => setDraft((d) => ({ ...d, imageUrl: imgs[imgs.length - 1] || "" }))}
-          />
-          <p className="text-xs text-muted-foreground">
-            Wide landscape images work best (e.g. 1600×900). Keep important content centered.
-          </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Desktop Image *</Label>
+            <ImageUpload
+              images={draft.imageUrl ? [draft.imageUrl] : []}
+              onChange={(imgs) => setDraft((d) => ({ ...d, imageUrl: imgs[imgs.length - 1] || "" }))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Wide / landscape (e.g. 1600×900). Keep key content centered.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label>Mobile Image (optional)</Label>
+            <ImageUpload
+              images={draft.mobileImageUrl ? [draft.mobileImageUrl] : []}
+              onChange={(imgs) =>
+                setDraft((d) => ({ ...d, mobileImageUrl: imgs[imgs.length - 1] || "" }))
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Taller / portrait (e.g. 900×1200) so phones don&apos;t crop it. Falls back to the desktop image if empty.
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

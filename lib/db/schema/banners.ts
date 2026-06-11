@@ -3,7 +3,8 @@ import { pgTable, uuid, text, integer, boolean, timestamp } from "drizzle-orm/pg
 // Homepage hero carousel slides, managed from the admin panel.
 export const banners = pgTable("banners", {
   id: uuid("id").primaryKey().defaultRandom(),
-  imageUrl: text("image_url").notNull(),
+  imageUrl: text("image_url").notNull(), // desktop / wide
+  mobileImageUrl: text("mobile_image_url"), // optional portrait crop for phones
   headline: text("headline"),
   subheadline: text("subheadline"),
   ctaLabel: text("cta_label"),
