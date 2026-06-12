@@ -36,7 +36,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   }, [count]);
 
   return (
-    <section className="relative h-screen overflow-hidden">
+    <section className="relative h-[80vh] overflow-hidden">
       {slides.map((slide, i) => {
         // Near-black for light images, white for dark images (per slide).
         const dark = slide.textColor === "dark";

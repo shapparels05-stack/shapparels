@@ -41,13 +41,9 @@ export function MobileNav({ open, onClose, categories = [] }: MobileNavProps) {
         <div key={cat.id}>
           <div className="flex items-center">
             <Link
-              href={`/category/${cat.slug}`}
+              href={`/products?category=${cat.id}`}
               onClick={onClose}
-              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
-                pathname === `/category/${cat.slug}`
-                  ? "bg-accent text-primary"
-                  : "text-muted-foreground"
-              }`}
+              className="flex-1 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent"
             >
               {cat.name}
             </Link>

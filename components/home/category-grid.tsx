@@ -23,7 +23,7 @@ export async function CategoryGrid() {
         {allCategories.map((category) => (
           <Link
             key={category.id}
-            href={`/category/${category.slug}`}
+            href={`/products?category=${category.id}`}
             className="group relative aspect-square overflow-hidden rounded-lg border border-border/50"
           >
             {category.image ? (

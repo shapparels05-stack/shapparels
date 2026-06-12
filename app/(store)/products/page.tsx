@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { getProducts } from "@/lib/db/queries/products";
-import { getCategories } from "@/lib/db/queries/categories";
+import { getCategories, getDescendantIds } from "@/lib/db/queries/categories";
 import { ProductGrid } from "@/components/products/product-grid";
 import { ProductFilters } from "@/components/products/product-filters";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
@@ -34,20 +34,43 @@ interface ProductsPageProps {
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
 
-  const [{ products, total, page, totalPages }, categories] = await Promise.all([
-    getProducts({
-      categoryId: params.category,
-      minPrice: params.minPrice ? Number(params.minPrice) : undefined,
-      maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
-      sortBy: (params.sort as any) || "newest",
-      page: params.page ? Number(params.page) : 1,
-    }),
-    getCategories(),
-  ]);
+  const categories = await getCategories();
+  const selectedCategory = params.category
+    ? categories.find((c) => c.id === params.category)
+    : null;
+
+  // A selected category includes its whole subtree (so picking a parent shows
+  // products from its subcategories too).
+  const categoryIds = params.category
+    ? await getDescendantIds(params.category)
+    : undefined;
+
+  const { products, total, page, totalPages } = await getProducts({
+    categoryIds,
+    minPrice: params.minPrice ? Number(params.minPrice) : undefined,
+    maxPrice: params.maxPrice ? Number(params.maxPrice) : undefined,
+    sortBy: (params.sort as any) || "newest",
+    page: params.page ? Number(params.page) : 1,
+  });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <Breadcrumbs items={[{ label: "Shop" }]} />
+      <Breadcrumbs
+        items={
+          selectedCategory
+            ? [{ label: "Shop", href: "/products" }, { label: selectedCategory.name }]
+            : [{ label: "Shop" }]
+        }
+      />
+
+      {selectedCategory && (
+        <div className="mt-6">
+          <h1 className="font-serif text-3xl font-bold">{selectedCategory.name}</h1>
+          {selectedCategory.description && (
+            <p className="mt-2 text-muted-foreground">{selectedCategory.description}</p>
+          )}
+        </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-8 lg:flex-row">
         {/* Sidebar Filters */}

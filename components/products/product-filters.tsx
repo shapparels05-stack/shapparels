@@ -90,8 +90,15 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
             step={500}
             value={[minPrice, maxPrice]}
             onValueCommit={(value) => {
-              updateFilter("minPrice", value[0] > 0 ? value[0].toString() : "");
-              updateFilter("maxPrice", value[1] < 50000 ? value[1].toString() : "");
+              // Set both bounds in ONE push — two sequential pushes from the
+              // same stale searchParams would clobber each other.
+              const params = new URLSearchParams(searchParams.toString());
+              if (value[0] > 0) params.set("minPrice", value[0].toString());
+              else params.delete("minPrice");
+              if (value[1] < 50000) params.set("maxPrice", value[1].toString());
+              else params.delete("maxPrice");
+              params.delete("page");
+              router.push(`/products?${params.toString()}`);
             }}
           />
           <div className="mt-2 flex justify-between text-xs text-muted-foreground">

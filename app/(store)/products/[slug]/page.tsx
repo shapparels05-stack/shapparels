@@ -1,7 +1,8 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getProductBySlug, getRelatedProducts } from "@/lib/db/queries/products";
+import { getProductBySlug, getProductsGroupedByCategory } from "@/lib/db/queries/products";
 import { getProductRatingSummary } from "@/lib/db/queries/reviews";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { RatingSummary } from "@/components/reviews/rating-summary";
@@ -9,10 +10,9 @@ import { ProductReviews } from "@/components/reviews/product-reviews";
 import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
 import { ProductImages } from "@/components/products/product-images";
 import { ProductTrustBadges } from "@/components/products/product-trust-badges";
-import { CategoryGrid } from "@/components/home/category-grid";
+import { ProductGrid } from "@/components/products/product-grid";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
-import { RelatedProducts } from "@/components/products/related-products";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SITE_URL } from "@/lib/constants";
@@ -48,15 +48,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const [relatedProducts, ratingSummary] = await Promise.all([
-    getRelatedProducts(product.id, product.categoryId, 48),
+  const [categoryGroups, ratingSummary] = await Promise.all([
+    getProductsGroupedByCategory({ perCategory: 4, excludeProductId: product.id }),
     getProductRatingSummary(product.id),
   ]);
 
   const breadcrumbItems = [
     { label: "Shop", href: "/products" },
     ...(product.category
-      ? [{ label: product.category.name, href: `/category/${product.category.slug}` }]
+      ? [{ label: product.category.name, href: `/products?category=${product.category.id}` }]
       : []),
     { label: product.name },
   ];
@@ -154,18 +154,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </Tabs>
       </div>
 
-      {/* Related Products */}
-      {relatedProducts.length > 0 && (
+      {/* You May Also Like — a few items per category */}
+      {categoryGroups.length > 0 && (
         <div className="mt-16">
           <h2 className="font-serif text-2xl font-bold">You May Also Like</h2>
-          <div className="mt-6">
-            <RelatedProducts products={relatedProducts} />
+          <div className="mt-6 space-y-10">
+            {categoryGroups.map((group) => (
+              <div key={group.category.id}>
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-serif text-lg font-semibold">{group.category.name}</h3>
+                  <Link
+                    href={`/products?category=${group.category.id}`}
+                    className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+                <ProductGrid products={group.products} />
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      {/* Browse by Categories */}
-      <CategoryGrid />
     </div>
   );
 }

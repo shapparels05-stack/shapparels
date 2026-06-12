@@ -9,8 +9,9 @@ import {
   orders,
   orderItems,
 } from "@/lib/db/schema";
-import { eq, ne, and, desc, asc, ilike, or, sql, inArray } from "drizzle-orm";
+import { eq, ne, and, desc, asc, ilike, or, sql, inArray, isNull } from "drizzle-orm";
 import { getRatingSummaries } from "@/lib/db/queries/reviews";
+import { getDescendantIds } from "@/lib/db/queries/categories";
 
 // Columns shared by the homepage product carousels.
 const homeProductColumns = {
@@ -79,6 +80,44 @@ export async function getNewArrivals(limit = 8) {
     .orderBy(desc(products.createdAt))
     .limit(limit);
   return hydrateProducts(rows);
+}
+
+// Newest products grouped by top-level category (each includes its whole
+// subtree). Used for the homepage "New Arrivals" rows and the product-detail
+// recommendations — one heading + products per category.
+export async function getProductsGroupedByCategory(options: {
+  perCategory?: number;
+  maxCategories?: number;
+  excludeProductId?: string;
+} = {}) {
+  const { perCategory = 8, maxCategories = 6, excludeProductId } = options;
+
+  const topCats = await db
+    .select({ id: categories.id, name: categories.name, slug: categories.slug })
+    .from(categories)
+    .where(and(eq(categories.isActive, true), isNull(categories.parentId)))
+    .orderBy(asc(categories.sortOrder))
+    .limit(maxCategories);
+
+  const groups = await Promise.all(
+    topCats.map(async (cat) => {
+      const ids = await getDescendantIds(cat.id);
+      const conditions = [eq(products.isActive, true), inArray(products.categoryId, ids)];
+      if (excludeProductId) conditions.push(ne(products.id, excludeProductId));
+
+      const rows = await db
+        .select(homeProductColumns)
+        .from(products)
+        .leftJoin(categories, eq(products.categoryId, categories.id))
+        .where(and(...conditions))
+        .orderBy(desc(products.createdAt))
+        .limit(perCategory);
+
+      return { category: cat, products: await hydrateProducts(rows) };
+    })
+  );
+
+  return groups.filter((g) => g.products.length > 0);
 }
 
 // Best sellers: admin-flagged products first (isBestSeller), then topped up by
