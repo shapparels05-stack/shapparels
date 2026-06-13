@@ -1,0 +1,1 @@
+ALTER TABLE "banners" ADD COLUMN "text_position" text DEFAULT 'center' NOT NULL;

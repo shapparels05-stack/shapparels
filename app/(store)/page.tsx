@@ -1,6 +1,7 @@
 import { HomeHero } from "@/components/home/home-hero";
 import { LimitedTimeDeals } from "@/components/home/limited-time-deals";
 import { FeaturedProducts } from "@/components/home/featured-products";
+import { BrowseByCategory } from "@/components/home/browse-by-category";
 import { NewArrivals } from "@/components/home/new-arrivals";
 import { BestSellers } from "@/components/home/best-sellers";
 import { HomeReviews } from "@/components/home/home-reviews";
@@ -39,11 +40,15 @@ export default function HomePage() {
       <Suspense fallback={<ProductsSkeleton />}>
         <FeaturedProducts />
       </Suspense>
+      {/* Browse by Category → Best Sellers → New Arrivals (last) */}
       <Suspense fallback={<ProductsSkeleton />}>
-        <NewArrivals />
+        <BrowseByCategory />
       </Suspense>
       <Suspense fallback={<ProductsSkeleton />}>
         <BestSellers />
+      </Suspense>
+      <Suspense fallback={<ProductsSkeleton />}>
+        <NewArrivals />
       </Suspense>
       <Suspense fallback={null}>
         <HomeReviews />

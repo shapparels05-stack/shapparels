@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export function HeroBanner() {
   return (
-    <section className="relative flex h-[80vh] items-center justify-center overflow-hidden">
+    <section className="relative flex h-[70vh] items-center justify-center overflow-hidden">
       {/* Background image */}
       <Image
         src="/hero-image.webp"

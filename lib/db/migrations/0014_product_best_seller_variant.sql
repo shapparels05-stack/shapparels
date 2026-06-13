@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "best_seller_variant_id" uuid;

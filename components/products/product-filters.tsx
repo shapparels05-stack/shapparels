@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
@@ -32,6 +32,13 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
   const selectedCategory = searchParams.get("category") || "";
   const minPrice = Number(searchParams.get("minPrice")) || 0;
   const maxPrice = Number(searchParams.get("maxPrice")) || 50000;
+
+  // Local state so the slider thumb moves while dragging (a controlled slider
+  // with only onValueCommit can't move). Synced from the URL when it changes.
+  const [range, setRange] = useState<[number, number]>([minPrice, maxPrice]);
+  useEffect(() => {
+    setRange([minPrice, maxPrice]);
+  }, [minPrice, maxPrice]);
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -88,7 +95,8 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
             min={0}
             max={50000}
             step={500}
-            value={[minPrice, maxPrice]}
+            value={range}
+            onValueChange={(value) => setRange([value[0], value[1]])}
             onValueCommit={(value) => {
               // Set both bounds in ONE push — two sequential pushes from the
               // same stale searchParams would clobber each other.
@@ -102,8 +110,8 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
             }}
           />
           <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-            <span>Rs. {minPrice.toLocaleString()}</span>
-            <span>Rs. {maxPrice.toLocaleString()}</span>
+            <span>Rs. {range[0].toLocaleString()}</span>
+            <span>Rs. {range[1].toLocaleString()}</span>
           </div>
         </div>
       </div>

@@ -11,6 +11,9 @@ export interface HeroSlide {
   imageUrl: string;
   mobileImageUrl: string | null;
   textColor: string; // "light" | "dark"
+  textPosition: string; // "left" | "center" | "right"
+  textVAlign: string; // "top" | "center" | "bottom"
+  scrim: boolean;
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -19,7 +22,27 @@ export interface HeroSlide {
 
 const AUTOPLAY_MS = 6000;
 
-export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
+// Render a headline where any text wrapped in *asterisks* shows in the gold
+// accent colour. e.g. "Elegance *Redefined*" → "Elegance " + gold "Redefined".
+function renderHeadline(text: string) {
+  return text.split(/(\*[^*]+\*)/g).map((part, i) =>
+    part.length > 2 && part.startsWith("*") && part.endsWith("*") ? (
+      <span key={i} className="text-primary">
+        {part.slice(1, -1)}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
+export function HeroCarousel({
+  slides,
+  heightClass = "h-[70vh]",
+}: {
+  slides: HeroSlide[];
+  heightClass?: string;
+}) {
   const [index, setIndex] = useState(0);
   const count = slides.length;
 
@@ -36,12 +59,29 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   }, [count]);
 
   return (
-    <section className="relative h-[80vh] overflow-hidden">
+    <section className={`relative overflow-hidden ${heightClass}`}>
       {slides.map((slide, i) => {
         // Near-black for light images, white for dark images (per slide).
         const dark = slide.textColor === "dark";
         const headlineColor = dark ? "text-neutral-900" : "text-white drop-shadow-lg";
         const subColor = dark ? "text-neutral-800" : "text-white/85 drop-shadow-md";
+        // Where the text block sits within the hero.
+        const pos = slide.textPosition;
+        const justify =
+          pos === "left" ? "justify-start" : pos === "right" ? "justify-end" : "justify-center";
+        const align =
+          pos === "left" ? "text-left items-start" : pos === "right" ? "text-right items-end" : "text-center items-center";
+        const vAlign =
+          slide.textVAlign === "top"
+            ? "items-start pt-12 sm:pt-16"
+            : slide.textVAlign === "bottom"
+            ? "items-end pb-12 sm:pb-16"
+            : "items-center";
+        // Optional legibility scrim behind the text — dark panel under light
+        // text, light panel under dark text.
+        const scrimClass = slide.scrim
+          ? `rounded-2xl p-6 backdrop-blur-sm ${dark ? "bg-white/40" : "bg-black/35"}`
+          : "";
         const content = (
           <>
             {/* Desktop image */}
@@ -68,28 +108,30 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
               sizes="100vw"
             />
             {(slide.headline || slide.subheadline || slide.ctaLabel) && (
-              <div className="relative z-10 mx-auto flex h-full max-w-4xl flex-col items-center justify-center px-4 text-center">
-                {slide.headline && (
-                  <h2
-                    className={`font-serif text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl ${headlineColor}`}
-                  >
-                    {slide.headline}
-                  </h2>
-                )}
-                {slide.subheadline && (
-                  <p
-                    className={`mx-auto mt-4 max-w-2xl text-base sm:mt-6 sm:text-lg ${subColor}`}
-                  >
-                    {slide.subheadline}
-                  </p>
-                )}
-                {slide.ctaLabel && slide.ctaHref && (
-                  <div className="mt-8">
-                    <Button size="lg" asChild className="min-w-[160px]">
-                      <Link href={slide.ctaHref}>{slide.ctaLabel}</Link>
-                    </Button>
-                  </div>
-                )}
+              <div
+                className={`relative z-10 mx-auto flex h-full max-w-6xl px-6 sm:px-10 ${justify} ${vAlign}`}
+              >
+                <div className={`flex max-w-lg flex-col ${align} ${scrimClass}`}>
+                  {slide.headline && (
+                    <h2
+                      className={`font-serif text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl ${headlineColor}`}
+                    >
+                      {renderHeadline(slide.headline)}
+                    </h2>
+                  )}
+                  {slide.subheadline && (
+                    <p className={`mt-4 text-base sm:mt-6 sm:text-lg ${subColor}`}>
+                      {slide.subheadline}
+                    </p>
+                  )}
+                  {slide.ctaLabel && slide.ctaHref && (
+                    <div className="mt-8">
+                      <Button size="lg" asChild className="min-w-[160px]">
+                        <Link href={slide.ctaHref}>{slide.ctaLabel}</Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </>

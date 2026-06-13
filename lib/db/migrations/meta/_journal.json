@@ -85,6 +85,27 @@
       "when": 1781170587256,
       "tag": "0011_product_best_seller",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1781325721917,
+      "tag": "0012_banner_text_position",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1781326799662,
+      "tag": "0013_banner_text_extras",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1781327568989,
+      "tag": "0014_product_best_seller_variant",
+      "breakpoints": true
     }
   ]
 }

@@ -89,8 +89,9 @@ export async function getProductsGroupedByCategory(options: {
   perCategory?: number;
   maxCategories?: number;
   excludeProductId?: string;
+  bestSellerOnly?: boolean;
 } = {}) {
-  const { perCategory = 8, maxCategories = 6, excludeProductId } = options;
+  const { perCategory = 8, maxCategories = 6, excludeProductId, bestSellerOnly } = options;
 
   const topCats = await db
     .select({ id: categories.id, name: categories.name, slug: categories.slug })
@@ -104,14 +105,40 @@ export async function getProductsGroupedByCategory(options: {
       const ids = await getDescendantIds(cat.id);
       const conditions = [eq(products.isActive, true), inArray(products.categoryId, ids)];
       if (excludeProductId) conditions.push(ne(products.id, excludeProductId));
+      if (bestSellerOnly) conditions.push(eq(products.isBestSeller, true));
 
       const rows = await db
-        .select(homeProductColumns)
+        .select({ ...homeProductColumns, bestSellerVariantId: products.bestSellerVariantId })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
         .where(and(...conditions))
         .orderBy(desc(products.createdAt))
         .limit(perCategory);
+
+      // For Best Sellers, show the chosen variant's price (if one is set).
+      if (bestSellerOnly) {
+        const variantIds = rows
+          .map((r) => r.bestSellerVariantId)
+          .filter((id): id is string => Boolean(id));
+        if (variantIds.length > 0) {
+          const variants = await db
+            .select({
+              id: productVariants.id,
+              price: productVariants.price,
+              compareAtPrice: productVariants.compareAtPrice,
+            })
+            .from(productVariants)
+            .where(inArray(productVariants.id, variantIds));
+          const byId = new Map(variants.map((v) => [v.id, v]));
+          for (const r of rows) {
+            const v = r.bestSellerVariantId ? byId.get(r.bestSellerVariantId) : undefined;
+            if (v) {
+              r.basePrice = v.price;
+              r.compareAtPrice = v.compareAtPrice;
+            }
+          }
+        }
+      }
 
       return { category: cat, products: await hydrateProducts(rows) };
     })

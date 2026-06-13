@@ -18,6 +18,7 @@ export const productCreateSchema = z.object({
   stock: z.coerce.number().int().min(0, "Stock cannot be negative").default(0),
   isFeatured: z.boolean().default(false),
   isBestSeller: z.boolean().default(false),
+  bestSellerVariantId: z.string().uuid().optional().nullable(),
   isActive: z.boolean().default(true),
   tags: z.array(z.string()).default([]),
 });

@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
         stock: parsed.stock,
         isFeatured: parsed.isFeatured,
         isBestSeller: parsed.isBestSeller,
+        bestSellerVariantId: parsed.bestSellerVariantId ?? null,
         isActive: parsed.isActive,
         tags: parsed.tags,
       })

@@ -20,6 +20,8 @@ export const products = pgTable("products", {
   stock: integer("stock").notNull().default(0),
   isFeatured: boolean("is_featured").notNull().default(false),
   isBestSeller: boolean("is_best_seller").notNull().default(false),
+  // Which variant's price to show in the Best Sellers section (optional).
+  bestSellerVariantId: uuid("best_seller_variant_id"),
   isActive: boolean("is_active").notNull().default(true),
   tags: jsonb("tags").$type<string[]>().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

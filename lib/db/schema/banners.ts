@@ -6,7 +6,11 @@ export const banners = pgTable("banners", {
   imageUrl: text("image_url").notNull(), // desktop / wide
   mobileImageUrl: text("mobile_image_url"), // optional portrait crop for phones
   textColor: text("text_color").notNull().default("light"), // "light" | "dark"
+  textPosition: text("text_position").notNull().default("center"), // "left" | "center" | "right"
+  textVAlign: text("text_v_align").notNull().default("center"), // "top" | "center" | "bottom"
+  scrim: boolean("scrim").notNull().default(false), // legibility panel behind text
   headline: text("headline"),
+  headlineAccent: text("headline_accent"), // accent word(s) shown in the primary colour
   subheadline: text("subheadline"),
   ctaLabel: text("cta_label"),
   ctaHref: text("cta_href"),

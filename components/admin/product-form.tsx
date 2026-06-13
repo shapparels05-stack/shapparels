@@ -53,6 +53,11 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   const [images, setImages] = useState<string[]>(
     initialData?.images?.map((i: any) => i.url) || []
   );
+  // Which saved variant's price represents this product in Best Sellers.
+  const [bestSellerVariantId, setBestSellerVariantId] = useState<string>(
+    initialData?.bestSellerVariantId || ""
+  );
+  const savedVariants: any[] = initialData?.variants || [];
 
   // Build initial option types from existing data
   const buildInitialOptionTypes = (): OptionTypeInput[] => {
@@ -156,6 +161,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
       metaDescription: formData.get("metaDescription") as string,
       isFeatured: formData.get("isFeatured") === "on",
       isBestSeller: formData.get("isBestSeller") === "on",
+      bestSellerVariantId: bestSellerVariantId || null,
       isActive: formData.get("isActive") === "on",
       tags: (formData.get("tags") as string)
         .split(",")
@@ -363,6 +369,31 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
               <Label htmlFor="isActive">Active</Label>
             </div>
           </div>
+
+          {savedVariants.length > 0 && (
+            <div className="space-y-2">
+              <Label>Best Seller price variant</Label>
+              <Select
+                value={bestSellerVariantId || "base"}
+                onValueChange={(v) => setBestSellerVariantId(v === "base" ? "" : v)}
+              >
+                <SelectTrigger className="sm:w-80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="base">Base price (default)</SelectItem>
+                  {savedVariants.map((v: any) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.sku || `Variant`} — Rs. {Number(v.price).toLocaleString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Which variant&apos;s price shows on the Best Sellers card. Re-pick if you edit variants (their IDs change on save).
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

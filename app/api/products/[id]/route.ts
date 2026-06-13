@@ -61,6 +61,7 @@ export async function PUT(
         stock: body.stock,
         isFeatured: body.isFeatured,
         isBestSeller: body.isBestSeller,
+        bestSellerVariantId: body.bestSellerVariantId || null,
         isActive: body.isActive,
         tags: body.tags,
       })

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImageUpload } from "@/components/admin/image-upload";
+import { HeroCarousel } from "@/components/home/hero-carousel";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +24,9 @@ interface Banner {
   imageUrl: string;
   mobileImageUrl: string | null;
   textColor: string;
+  textPosition: string;
+  textVAlign: string;
+  scrim: boolean;
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -37,6 +41,9 @@ const emptyDraft: Draft = {
   imageUrl: "",
   mobileImageUrl: "",
   textColor: "light",
+  textPosition: "center",
+  textVAlign: "center",
+  scrim: false,
   headline: "",
   subheadline: "",
   ctaLabel: "",
@@ -71,6 +78,9 @@ export default function AdminBannersPage() {
       imageUrl: b.imageUrl,
       mobileImageUrl: b.mobileImageUrl || "",
       textColor: b.textColor || "light",
+      textPosition: b.textPosition || "center",
+      textVAlign: b.textVAlign || "center",
+      scrim: Boolean(b.scrim),
       headline: b.headline || "",
       subheadline: b.subheadline || "",
       ctaLabel: b.ctaLabel || "",
@@ -134,6 +144,33 @@ export default function AdminBannersPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Live preview */}
+        {draft.imageUrl && (
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Live preview</Label>
+            <div className="overflow-hidden rounded-lg border border-border">
+              <HeroCarousel
+                slides={[
+                  {
+                    id: "preview",
+                    imageUrl: draft.imageUrl,
+                    mobileImageUrl: draft.mobileImageUrl || null,
+                    textColor: draft.textColor,
+                    textPosition: draft.textPosition,
+                    textVAlign: draft.textVAlign,
+                    scrim: draft.scrim,
+                    headline: draft.headline,
+                    subheadline: draft.subheadline,
+                    ctaLabel: draft.ctaLabel,
+                    ctaHref: draft.ctaHref,
+                  },
+                ]}
+                heightClass="h-56 sm:h-72"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Desktop Image *</Label>
@@ -142,7 +179,7 @@ export default function AdminBannersPage() {
               onChange={(imgs) => setDraft((d) => ({ ...d, imageUrl: imgs[imgs.length - 1] || "" }))}
             />
             <p className="text-xs text-muted-foreground">
-              Wide / landscape (e.g. 1600×900). Keep key content centered.
+              Wide / landscape, about 21:9 — e.g. <strong>2000×780</strong> — to fill the 70vh hero with minimal cropping.
             </p>
           </div>
           <div className="space-y-2">
@@ -154,19 +191,23 @@ export default function AdminBannersPage() {
               }
             />
             <p className="text-xs text-muted-foreground">
-              Taller / portrait (e.g. 900×1200) so phones don&apos;t crop it. Falls back to the desktop image if empty.
+              Portrait, about 3:4 — e.g. <strong>1000×1300</strong> — so phones don&apos;t crop it. Falls back to the desktop image if empty.
             </p>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label>Headline</Label>
             <Input
               value={draft.headline || ""}
               onChange={(e) => setDraft((d) => ({ ...d, headline: e.target.value }))}
-              placeholder="e.g. Eid Collection"
+              placeholder="e.g. Elegance *Redefined*"
             />
+            <p className="text-xs text-muted-foreground">
+              Wrap any words in <strong>*asterisks*</strong> to show them in gold — e.g.{" "}
+              <code>Elegance *Redefined*</code> or <code>Eid *Sale* Now</code>.
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Subtext</Label>
@@ -208,12 +249,52 @@ export default function AdminBannersPage() {
             </Select>
           </div>
           <div className="space-y-2">
+            <Label>Text Position</Label>
+            <Select
+              value={draft.textPosition}
+              onValueChange={(v) => setDraft((d) => ({ ...d, textPosition: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left (image subject on right)</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="right">Right (image subject on left)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Vertical Position</Label>
+            <Select
+              value={draft.textVAlign}
+              onValueChange={(v) => setDraft((d) => ({ ...d, textVAlign: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="top">Top</SelectItem>
+                <SelectItem value="center">Middle</SelectItem>
+                <SelectItem value="bottom">Bottom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Sort Order</Label>
             <Input
               type="number"
               value={draft.sortOrder}
               onChange={(e) => setDraft((d) => ({ ...d, sortOrder: Number(e.target.value) || 0 }))}
             />
+          </div>
+          <div className="flex items-center gap-2 pt-7">
+            <Checkbox
+              id="banner-scrim"
+              checked={draft.scrim}
+              onCheckedChange={(c) => setDraft((d) => ({ ...d, scrim: Boolean(c) }))}
+            />
+            <Label htmlFor="banner-scrim">Text panel (improves readability)</Label>
           </div>
           <div className="flex items-center gap-2 pt-7">
             <Checkbox

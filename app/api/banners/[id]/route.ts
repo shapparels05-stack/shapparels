@@ -25,6 +25,13 @@ export async function PUT(
         imageUrl: body.imageUrl,
         mobileImageUrl: body.mobileImageUrl || null,
         textColor: body.textColor === "dark" ? "dark" : "light",
+        textPosition: ["left", "center", "right"].includes(body.textPosition)
+          ? body.textPosition
+          : "center",
+        textVAlign: ["top", "center", "bottom"].includes(body.textVAlign)
+          ? body.textVAlign
+          : "center",
+        scrim: Boolean(body.scrim),
         headline: body.headline || null,
         subheadline: body.subheadline || null,
         ctaLabel: body.ctaLabel || null,
