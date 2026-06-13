@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { Phone, Mail, MessageCircle, Clock } from "lucide-react";
+import { SocialLinks } from "@/components/shared/social-links";
 import { Card, CardContent } from "@/components/ui/card";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { WHATSAPP_NUMBER } from "@/lib/constants";
@@ -21,6 +22,7 @@ export default function ContactPage() {
         <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
           Have a question about our products or your order? We&apos;d love to hear from you.
         </p>
+        <SocialLinks className="mt-6 justify-center" />
       </div>
 
       <div className="mt-12 grid gap-8 lg:grid-cols-2">

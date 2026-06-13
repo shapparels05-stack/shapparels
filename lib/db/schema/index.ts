@@ -6,3 +6,4 @@ export * from "./contact";
 export * from "./reviews";
 export * from "./banners";
 export * from "./announcements";
+export * from "./settings";

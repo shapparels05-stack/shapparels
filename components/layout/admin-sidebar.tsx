@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, FolderOpen, MessageCircle, Star, GalleryHorizontalEnd, Megaphone, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, FolderOpen, MessageCircle, Star, GalleryHorizontalEnd, Megaphone, Settings, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ const navItems = [
   { label: "Categories", href: "/admin/categories", icon: FolderOpen },
   { label: "Messages", href: "/admin/messages", icon: MessageCircle },
   { label: "Reviews", href: "/admin/reviews", icon: Star },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 function NavLinks({ onClick }: { onClick?: () => void }) {

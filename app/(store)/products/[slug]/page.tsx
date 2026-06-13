@@ -49,7 +49,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const [categoryGroups, ratingSummary] = await Promise.all([
-    getProductsGroupedByCategory({ perCategory: 12, excludeProductId: product.id }),
+    getProductsGroupedByCategory({
+      perCategory: 12,
+      excludeProductId: product.id,
+      prioritizeCategoryId: product.categoryId ?? undefined,
+    }),
     getProductRatingSummary(product.id),
   ]);
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE_NAME, WHATSAPP_NUMBER } from "@/lib/constants";
+import { SocialLinks } from "@/components/shared/social-links";
 
 export function Footer() {
   return (
@@ -83,6 +84,7 @@ export function Footer() {
               )}
               <li>Cash on Delivery Available</li>
             </ul>
+            <SocialLinks className="mt-4" />
           </div>
         </div>
 

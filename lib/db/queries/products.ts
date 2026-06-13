@@ -90,8 +90,9 @@ export async function getProductsGroupedByCategory(options: {
   maxCategories?: number;
   excludeProductId?: string;
   bestSellerOnly?: boolean;
+  prioritizeCategoryId?: string; // move the group containing this category first
 } = {}) {
-  const { perCategory = 8, maxCategories = 6, excludeProductId, bestSellerOnly } = options;
+  const { perCategory = 8, maxCategories = 6, excludeProductId, bestSellerOnly, prioritizeCategoryId } = options;
 
   const topCats = await db
     .select({ id: categories.id, name: categories.name, slug: categories.slug })
@@ -140,11 +141,18 @@ export async function getProductsGroupedByCategory(options: {
         }
       }
 
-      return { category: cat, products: await hydrateProducts(rows) };
+      // Whether the prioritized category lives in this group's subtree.
+      const isPriority = prioritizeCategoryId ? ids.includes(prioritizeCategoryId) : false;
+      return { category: cat, products: await hydrateProducts(rows), isPriority };
     })
   );
 
-  return groups.filter((g) => g.products.length > 0);
+  const nonEmpty = groups.filter((g) => g.products.length > 0);
+  if (prioritizeCategoryId) {
+    // Stable sort: the matching group (current product's category) goes first.
+    nonEmpty.sort((a, b) => Number(b.isPriority) - Number(a.isPriority));
+  }
+  return nonEmpty.map((g) => ({ category: g.category, products: g.products }));
 }
 
 // Best sellers: admin-flagged products first (isBestSeller), then topped up by

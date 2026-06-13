@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { SocialLinks } from "@/components/shared/social-links";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Gem, Heart, Sparkles } from "lucide-react";
@@ -26,6 +27,7 @@ export default function AboutPage() {
           We curate the finest collection of bags, jewelry, cosmetics, accessories, and clothing
           to help you express your unique style with elegance.
         </p>
+        <SocialLinks className="mt-6 justify-center" />
       </section>
 
       {/* Values */}
