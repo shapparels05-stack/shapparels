@@ -10,7 +10,7 @@ import { ProductReviews } from "@/components/reviews/product-reviews";
 import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
 import { ProductImages } from "@/components/products/product-images";
 import { ProductTrustBadges } from "@/components/products/product-trust-badges";
-import { ProductGrid } from "@/components/products/product-grid";
+import { ProductCarousel } from "@/components/products/product-carousel";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,7 +49,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const [categoryGroups, ratingSummary] = await Promise.all([
-    getProductsGroupedByCategory({ perCategory: 4, excludeProductId: product.id }),
+    getProductsGroupedByCategory({ perCategory: 12, excludeProductId: product.id }),
     getProductRatingSummary(product.id),
   ]);
 
@@ -170,7 +170,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     View all
                   </Link>
                 </div>
-                <ProductGrid products={group.products} />
+                <ProductCarousel products={group.products} />
               </div>
             ))}
           </div>

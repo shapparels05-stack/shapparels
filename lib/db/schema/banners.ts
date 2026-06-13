@@ -9,6 +9,12 @@ export const banners = pgTable("banners", {
   textPosition: text("text_position").notNull().default("center"), // "left" | "center" | "right"
   textVAlign: text("text_v_align").notNull().default("center"), // "top" | "center" | "bottom"
   scrim: boolean("scrim").notNull().default(false), // legibility panel behind text
+  // Optional mobile overrides — null means "inherit the desktop setting".
+  mobileTextColor: text("mobile_text_color"),
+  mobileTextPosition: text("mobile_text_position"),
+  mobileTextVAlign: text("mobile_text_v_align"),
+  mobileScrim: boolean("mobile_scrim"),
+  hideTextOnMobile: boolean("hide_text_on_mobile").notNull().default(false),
   headline: text("headline"),
   headlineAccent: text("headline_accent"), // accent word(s) shown in the primary colour
   subheadline: text("subheadline"),

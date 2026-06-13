@@ -32,6 +32,11 @@ export async function PUT(
           ? body.textVAlign
           : "center",
         scrim: Boolean(body.scrim),
+        mobileTextColor: body.mobileTextColor || null,
+        mobileTextPosition: body.mobileTextPosition || null,
+        mobileTextVAlign: body.mobileTextVAlign || null,
+        mobileScrim: typeof body.mobileScrim === "boolean" ? body.mobileScrim : null,
+        hideTextOnMobile: Boolean(body.hideTextOnMobile),
         headline: body.headline || null,
         subheadline: body.subheadline || null,
         ctaLabel: body.ctaLabel || null,

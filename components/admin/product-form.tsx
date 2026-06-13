@@ -59,6 +59,21 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   );
   const savedVariants: any[] = initialData?.variants || [];
 
+  // Human label for a saved variant: its option combination (e.g. "Black / M")
+  // and SKU, so it's identifiable in the Best Seller dropdown.
+  const valueLabelById = new Map<string, string>();
+  for (const ot of initialData?.optionTypes || []) {
+    for (const v of ot.values || []) valueLabelById.set(v.id, v.value);
+  }
+  const variantLabel = (v: any) => {
+    const opts = (v.optionValueIds || [])
+      .map((id: string) => valueLabelById.get(id))
+      .filter(Boolean)
+      .join(" / ");
+    const parts = [opts, v.sku].filter(Boolean);
+    return parts.length ? parts.join(" · ") : "Variant";
+  };
+
   // Build initial option types from existing data
   const buildInitialOptionTypes = (): OptionTypeInput[] => {
     if (!initialData?.optionTypes?.length) return [];
@@ -384,7 +399,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                   <SelectItem value="base">Base price (default)</SelectItem>
                   {savedVariants.map((v: any) => (
                     <SelectItem key={v.id} value={v.id}>
-                      {v.sku || `Variant`} — Rs. {Number(v.price).toLocaleString()}
+                      {variantLabel(v)} — Rs. {Number(v.price).toLocaleString()}
                     </SelectItem>
                   ))}
                 </SelectContent>

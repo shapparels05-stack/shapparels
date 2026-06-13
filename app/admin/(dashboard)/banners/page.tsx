@@ -27,6 +27,11 @@ interface Banner {
   textPosition: string;
   textVAlign: string;
   scrim: boolean;
+  mobileTextColor: string | null;
+  mobileTextPosition: string | null;
+  mobileTextVAlign: string | null;
+  mobileScrim: boolean | null;
+  hideTextOnMobile: boolean;
   headline: string | null;
   subheadline: string | null;
   ctaLabel: string | null;
@@ -44,6 +49,11 @@ const emptyDraft: Draft = {
   textPosition: "center",
   textVAlign: "center",
   scrim: false,
+  mobileTextColor: null,
+  mobileTextPosition: null,
+  mobileTextVAlign: null,
+  mobileScrim: null,
+  hideTextOnMobile: false,
   headline: "",
   subheadline: "",
   ctaLabel: "",
@@ -59,6 +69,7 @@ export default function AdminBannersPage() {
   const [showNew, setShowNew] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [saving, setSaving] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
 
   useEffect(() => {
     fetch("/api/banners")
@@ -81,6 +92,11 @@ export default function AdminBannersPage() {
       textPosition: b.textPosition || "center",
       textVAlign: b.textVAlign || "center",
       scrim: Boolean(b.scrim),
+      mobileTextColor: b.mobileTextColor ?? null,
+      mobileTextPosition: b.mobileTextPosition ?? null,
+      mobileTextVAlign: b.mobileTextVAlign ?? null,
+      mobileScrim: b.mobileScrim ?? null,
+      hideTextOnMobile: Boolean(b.hideTextOnMobile),
       headline: b.headline || "",
       subheadline: b.subheadline || "",
       ctaLabel: b.ctaLabel || "",
@@ -144,11 +160,34 @@ export default function AdminBannersPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Live preview */}
+        {/* Live preview with device toggle */}
         {draft.imageUrl && (
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Live preview</Label>
-            <div className="overflow-hidden rounded-lg border border-border">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Live preview</Label>
+              <div className="flex gap-1 rounded-md border border-border p-0.5">
+                {(["desktop", "mobile"] as const).map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setPreviewDevice(d)}
+                    className={`rounded px-3 py-1 text-xs capitalize transition-colors ${
+                      previewDevice === d ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+                    }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Desktop ≈ 70vh wide hero; mobile ≈ a phone frame */}
+            <div
+              className={
+                previewDevice === "mobile"
+                  ? "mx-auto w-[320px] overflow-hidden rounded-lg border border-border"
+                  : "overflow-hidden rounded-lg border border-border"
+              }
+            >
               <HeroCarousel
                 slides={[
                   {
@@ -159,15 +198,24 @@ export default function AdminBannersPage() {
                     textPosition: draft.textPosition,
                     textVAlign: draft.textVAlign,
                     scrim: draft.scrim,
+                    mobileTextColor: draft.mobileTextColor,
+                    mobileTextPosition: draft.mobileTextPosition,
+                    mobileTextVAlign: draft.mobileTextVAlign,
+                    mobileScrim: draft.mobileScrim,
+                    hideTextOnMobile: draft.hideTextOnMobile,
                     headline: draft.headline,
                     subheadline: draft.subheadline,
                     ctaLabel: draft.ctaLabel,
                     ctaHref: draft.ctaHref,
                   },
                 ]}
-                heightClass="h-56 sm:h-72"
+                forceVariant={previewDevice}
+                heightClass={previewDevice === "mobile" ? "h-[480px]" : "h-72 sm:h-80"}
               />
             </div>
+            <p className="text-center text-[11px] text-muted-foreground">
+              Approximate preview — text sizes scale to the real device on the live site.
+            </p>
           </div>
         )}
 
@@ -294,7 +342,7 @@ export default function AdminBannersPage() {
               checked={draft.scrim}
               onCheckedChange={(c) => setDraft((d) => ({ ...d, scrim: Boolean(c) }))}
             />
-            <Label htmlFor="banner-scrim">Text panel (improves readability)</Label>
+            <Label htmlFor="banner-scrim">Soft fade behind text (readability)</Label>
           </div>
           <div className="flex items-center gap-2 pt-7">
             <Checkbox
@@ -303,6 +351,100 @@ export default function AdminBannersPage() {
               onCheckedChange={(c) => setDraft((d) => ({ ...d, isActive: Boolean(c) }))}
             />
             <Label htmlFor="banner-active">Active (visible on site)</Label>
+          </div>
+        </div>
+
+        {/* Mobile overrides — leave on "Same as desktop" to inherit */}
+        <div className="rounded-lg border border-border/60 p-4">
+          <p className="mb-3 text-sm font-medium">Mobile overrides (optional)</p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Mobile Text Color</Label>
+              <Select
+                value={draft.mobileTextColor ?? "inherit"}
+                onValueChange={(v) =>
+                  setDraft((d) => ({ ...d, mobileTextColor: v === "inherit" ? null : v }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">Same as desktop</SelectItem>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="dark">Dark</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Mobile Position</Label>
+              <Select
+                value={draft.mobileTextPosition ?? "inherit"}
+                onValueChange={(v) =>
+                  setDraft((d) => ({ ...d, mobileTextPosition: v === "inherit" ? null : v }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">Same as desktop</SelectItem>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Mobile Vertical</Label>
+              <Select
+                value={draft.mobileTextVAlign ?? "inherit"}
+                onValueChange={(v) =>
+                  setDraft((d) => ({ ...d, mobileTextVAlign: v === "inherit" ? null : v }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">Same as desktop</SelectItem>
+                  <SelectItem value="top">Top</SelectItem>
+                  <SelectItem value="center">Middle</SelectItem>
+                  <SelectItem value="bottom">Bottom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Mobile Fade</Label>
+              <Select
+                value={draft.mobileScrim === null ? "inherit" : draft.mobileScrim ? "on" : "off"}
+                onValueChange={(v) =>
+                  setDraft((d) => ({
+                    ...d,
+                    mobileScrim: v === "inherit" ? null : v === "on",
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">Same as desktop</SelectItem>
+                  <SelectItem value="on">On</SelectItem>
+                  <SelectItem value="off">Off</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2 sm:col-span-3">
+              <Checkbox
+                id="hide-text-mobile"
+                checked={draft.hideTextOnMobile}
+                onCheckedChange={(c) => setDraft((d) => ({ ...d, hideTextOnMobile: Boolean(c) }))}
+              />
+              <Label htmlFor="hide-text-mobile">
+                Hide all text on mobile (for images with text baked in)
+              </Label>
+            </div>
           </div>
         </div>
 
