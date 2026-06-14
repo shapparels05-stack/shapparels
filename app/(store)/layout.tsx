@@ -5,6 +5,7 @@ import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { SocialProofPopup } from "@/components/layout/social-proof-popup";
 import { CookieBanner } from "@/components/layout/cookie-banner";
 import { CartSheet } from "@/components/cart/cart-sheet";
+import { SiteJsonLd } from "@/components/shared/site-jsonld";
 
 export default function StoreLayout({
   children,
@@ -13,6 +14,7 @@ export default function StoreLayout({
 }) {
   return (
     <>
+      <SiteJsonLd />
       <AnnouncementBar />
       <Header />
       <main className="min-h-screen">{children}</main>

@@ -13,6 +13,7 @@ import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { ProductCarousel } from "@/components/products/product-carousel";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
+import { BreadcrumbJsonLd } from "@/components/shared/breadcrumb-jsonld";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SITE_URL } from "@/lib/constants";
@@ -78,6 +79,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <ProductJsonLd product={product} siteUrl={SITE_URL} rating={ratingSummary} />
+      <BreadcrumbJsonLd items={breadcrumbItems} />
       <Breadcrumbs items={breadcrumbItems} />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">

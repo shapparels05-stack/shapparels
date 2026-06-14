@@ -40,6 +40,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_PK",
     siteName: "SH Apparels",
+    images: ["/hero-image.webp"],
   },
   robots: {
     index: true,

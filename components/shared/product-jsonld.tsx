@@ -1,3 +1,5 @@
+import { SITE_NAME } from "@/lib/constants";
+
 interface ProductJsonLdProps {
   product: {
     name: string;
@@ -5,12 +7,16 @@ interface ProductJsonLdProps {
     basePrice: string;
     images: { url: string }[];
     slug: string;
+    code?: string | null;
+    stock?: number;
   };
   siteUrl: string;
   rating?: { average: number; count: number };
 }
 
 export function ProductJsonLd({ product, siteUrl, rating }: ProductJsonLdProps) {
+  const inStock = product.stock === undefined || product.stock > 0;
+
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -18,15 +24,19 @@ export function ProductJsonLd({ product, siteUrl, rating }: ProductJsonLdProps) 
     description: product.description || "",
     image: product.images.map((i) => i.url),
     url: `${siteUrl}/products/${product.slug}`,
+    brand: { "@type": "Brand", name: SITE_NAME },
+    ...(product.code ? { sku: product.code, mpn: product.code } : {}),
     offers: {
       "@type": "Offer",
       price: product.basePrice,
       priceCurrency: "PKR",
-      availability: "https://schema.org/InStock",
-      seller: {
-        "@type": "Organization",
-        name: "SH Apparels",
-      },
+      // Real availability based on stock (was hard-coded "InStock" before).
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: `${siteUrl}/products/${product.slug}`,
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@type": "Organization", name: SITE_NAME },
     },
   };
 

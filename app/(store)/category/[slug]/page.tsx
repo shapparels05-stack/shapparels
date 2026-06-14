@@ -16,6 +16,7 @@ import { ProductGrid } from "@/components/products/product-grid";
 import { ProductFilters } from "@/components/products/product-filters";
 import { SortSelect } from "@/components/products/sort-select";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { BreadcrumbJsonLd } from "@/components/shared/breadcrumb-jsonld";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SITE_URL } from "@/lib/constants";
 
@@ -111,6 +112,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <BreadcrumbJsonLd items={breadcrumbItems} />
       <Breadcrumbs items={breadcrumbItems} />
 
       <div className="mt-6">
