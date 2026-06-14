@@ -21,7 +21,7 @@ export async function BrowseByCategory() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-serif text-xl font-semibold">{group.category.name}</h3>
               <Link
-                href={`/products?category=${group.category.id}`}
+                href={`/category/${group.category.slug}`}
                 className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
               >
                 View all

@@ -81,7 +81,7 @@ export function Header() {
                     {categories.map((cat) => (
                       <div key={cat.id}>
                         <Link
-                          href={`/products?category=${cat.id}`}
+                          href={`/category/${cat.slug}`}
                           onClick={() => setShowCategories(false)}
                           className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                         >
@@ -92,7 +92,7 @@ export function Header() {
                             {cat.children.map((child) => (
                               <div key={child.id}>
                                 <Link
-                                  href={`/products?category=${child.id}`}
+                                  href={`/category/${child.slug}`}
                                   onClick={() => setShowCategories(false)}
                                   className="block rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-primary transition-colors"
                                 >
@@ -103,7 +103,7 @@ export function Header() {
                                     {child.children.map((grandchild) => (
                                       <Link
                                         key={grandchild.id}
-                                        href={`/products?category=${grandchild.id}`}
+                                        href={`/category/${grandchild.slug}`}
                                         onClick={() => setShowCategories(false)}
                                         className="block rounded-md px-3 py-1 text-xs text-muted-foreground/80 hover:bg-accent hover:text-primary transition-colors"
                                       >

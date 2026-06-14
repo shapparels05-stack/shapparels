@@ -32,9 +32,11 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: product.metaTitle || displayName,
     description: product.metaDescription || product.shortDescription || product.description?.slice(0, 160),
+    alternates: { canonical: `${SITE_URL}/products/${slug}` },
     openGraph: {
       title: product.metaTitle || displayName,
       description: product.metaDescription || product.shortDescription || "",
+      url: `${SITE_URL}/products/${slug}`,
       images: product.images[0] ? [{ url: product.images[0].url }] : [],
     },
   };
@@ -60,7 +62,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const breadcrumbItems = [
     { label: "Shop", href: "/products" },
     ...(product.category
-      ? [{ label: product.category.name, href: `/products?category=${product.category.id}` }]
+      ? [{ label: product.category.name, href: `/category/${product.category.slug}` }]
       : []),
     { label: product.name },
   ];
@@ -168,7 +170,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="font-serif text-lg font-semibold">{group.category.name}</h3>
                   <Link
-                    href={`/products?category=${group.category.id}`}
+                    href={`/category/${group.category.slug}`}
                     className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
                   >
                     View all

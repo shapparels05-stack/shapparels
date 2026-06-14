@@ -1,9 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -18,71 +17,52 @@ interface Category {
 
 interface ProductFiltersProps {
   categories: Category[];
+  // Where price/sort/clear push to (e.g. "/products" or "/category/bags").
+  basePath?: string;
+  // Slug of the category currently being viewed (for active highlight).
+  currentCategorySlug?: string;
 }
 
-function getIndentLabel(cat: Category, all: Category[]): string {
-  const prefix = "\u00A0\u00A0".repeat(cat.level ?? 0);
-  return prefix + cat.name;
-}
-
-export function ProductFilters({ categories }: ProductFiltersProps) {
+export function ProductFilters({
+  categories,
+  basePath = "/products",
+  currentCategorySlug,
+}: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const selectedCategory = searchParams.get("category") || "";
   const minPrice = Number(searchParams.get("minPrice")) || 0;
   const maxPrice = Number(searchParams.get("maxPrice")) || 50000;
 
-  // Local state so the slider thumb moves while dragging (a controlled slider
-  // with only onValueCommit can't move). Synced from the URL when it changes.
+  // Local state so the slider thumb moves while dragging.
   const [range, setRange] = useState<[number, number]>([minPrice, maxPrice]);
   useEffect(() => {
     setRange([minPrice, maxPrice]);
   }, [minPrice, maxPrice]);
 
-  const updateFilter = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-      params.delete("page");
-      router.push(`/products?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  const clearFilters = () => {
-    router.push("/products");
-  };
-
-  // Build ordered flat list respecting hierarchy
   const orderedCategories = buildOrderedList(categories);
 
   return (
     <div className="space-y-6">
       <div>
         <h3 className="font-serif text-sm font-semibold">Categories</h3>
-        <div className="mt-3 space-y-2">
-          {orderedCategories.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-2" style={{ paddingLeft: (cat.level ?? 0) * 16 }}>
-              <Checkbox
-                id={`cat-${cat.id}`}
-                checked={selectedCategory === cat.id}
-                onCheckedChange={(checked) =>
-                  updateFilter("category", checked ? cat.id : "")
-                }
-              />
-              <Label
-                htmlFor={`cat-${cat.id}`}
-                className="text-sm text-muted-foreground cursor-pointer"
+        <div className="mt-3 space-y-1">
+          {/* Clean, indexable category links (good for SEO) instead of ?category= */}
+          {orderedCategories.map((cat) => {
+            const active = currentCategorySlug === cat.slug;
+            return (
+              <Link
+                key={cat.id}
+                href={`/category/${cat.slug}`}
+                style={{ paddingLeft: (cat.level ?? 0) * 16 }}
+                className={`block rounded px-1 py-1 text-sm transition-colors hover:text-primary ${
+                  active ? "font-medium text-primary" : "text-muted-foreground"
+                }`}
               >
                 {cat.name}
-              </Label>
-            </div>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </div>
 
@@ -98,15 +78,15 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
             value={range}
             onValueChange={(value) => setRange([value[0], value[1]])}
             onValueCommit={(value) => {
-              // Set both bounds in ONE push — two sequential pushes from the
-              // same stale searchParams would clobber each other.
+              // Set both bounds in ONE push so they don't clobber each other.
               const params = new URLSearchParams(searchParams.toString());
               if (value[0] > 0) params.set("minPrice", value[0].toString());
               else params.delete("minPrice");
               if (value[1] < 50000) params.set("maxPrice", value[1].toString());
               else params.delete("maxPrice");
               params.delete("page");
-              router.push(`/products?${params.toString()}`);
+              const qs = params.toString();
+              router.push(qs ? `${basePath}?${qs}` : basePath);
             }}
           />
           <div className="mt-2 flex justify-between text-xs text-muted-foreground">
@@ -118,7 +98,12 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
 
       <Separator />
 
-      <Button variant="outline" size="sm" onClick={clearFilters} className="w-full">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => router.push(basePath)}
+        className="w-full"
+      >
         Clear Filters
       </Button>
     </div>
