@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { StarRating } from "@/components/reviews/star-rating";
+import { HoverImage } from "./hover-image";
 import { OfferCountdown } from "./offer-countdown";
 import { bucketDiscountPercent, activeCompareAtPrice, isLimitedOfferActive } from "@/lib/pricing";
 
@@ -50,13 +51,7 @@ export function ProductCard({ product }: ProductCardProps) {
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
             {secondImage && (
-              <Image
-                src={secondImage.url}
-                alt={secondImage.alt || product.name}
-                fill
-                className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              />
+              <HoverImage src={secondImage.url} alt={secondImage.alt || product.name} />
             )}
           </>
         ) : (
