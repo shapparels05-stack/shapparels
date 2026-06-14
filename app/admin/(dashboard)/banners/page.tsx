@@ -503,7 +503,6 @@ export default function AdminBannersPage() {
                       src={b.imageUrl}
                       alt={b.headline || ""}
                       fill
-                      unoptimized
                       className="object-cover"
                       sizes="112px"
                     />

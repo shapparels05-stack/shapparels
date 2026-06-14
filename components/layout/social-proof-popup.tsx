@@ -85,7 +85,6 @@ export function SocialProofPopup() {
               src={item.productImage}
               alt=""
               fill
-              unoptimized
               className="object-cover"
               sizes="48px"
             />

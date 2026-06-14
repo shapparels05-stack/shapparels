@@ -30,7 +30,6 @@ export function ProductImages({ images, productName, discountPercent, code }: Pr
           src={images[selectedIndex].url}
           alt={images[selectedIndex].alt || productName}
           fill
-          unoptimized
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
@@ -70,7 +69,6 @@ export function ProductImages({ images, productName, discountPercent, code }: Pr
                 src={image.url}
                 alt={image.alt || productName}
                 fill
-                unoptimized
                 className="object-cover"
                 sizes="80px"
               />

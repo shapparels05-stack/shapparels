@@ -46,7 +46,6 @@ export function ProductCard({ product }: ProductCardProps) {
               src={primaryImage.url}
               alt={primaryImage.alt || product.name}
               fill
-              unoptimized
               className="object-cover transition-opacity duration-500 group-hover:opacity-0"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
@@ -55,7 +54,6 @@ export function ProductCard({ product }: ProductCardProps) {
                 src={secondImage.url}
                 alt={secondImage.alt || product.name}
                 fill
-                unoptimized
                 className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />

@@ -28,7 +28,6 @@ export function OrderSummary() {
                   src={item.image}
                   alt={item.name}
                   fill
-                  unoptimized
                   className="object-cover"
                   sizes="64px"
                 />

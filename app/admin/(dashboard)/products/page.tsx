@@ -142,7 +142,6 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                       src={imageMap.get(product.id)!}
                       alt={product.name}
                       fill
-                      unoptimized
                       className="object-cover"
                       sizes="64px"
                     />
