@@ -27,41 +27,19 @@ export function ProductCarousel({
     return card ? card.offsetWidth + 16 : el.clientWidth * 0.8;
   };
 
-  // Keep the scroll position within the first copy; jumping by exactly one
-  // copy's width is seamless because both copies are identical.
-  const wrap = () => {
-    const el = trackRef.current;
-    if (!el || !loop) return;
-    const half = el.scrollWidth / 2;
-    if (el.scrollLeft >= half) el.scrollLeft -= half;
-  };
-
   const step = (dir: 1 | -1) => {
     const el = trackRef.current;
     if (!el) return;
-    // To scroll left past the start, first hop into the duplicate copy.
-    if (dir === -1 && loop && el.scrollLeft <= 5) {
-      el.scrollLeft += el.scrollWidth / 2;
+    if (loop) {
+      // Rewind by exactly one copy at the seam BEFORE the next smooth step.
+      // It's instant (no scroll-smooth) and invisible because both copies are
+      // identical — and it never collides with an in-flight animation.
+      const half = el.scrollWidth / 2;
+      if (dir === 1 && el.scrollLeft >= half) el.scrollLeft -= half;
+      else if (dir === -1 && el.scrollLeft <= 0) el.scrollLeft += half;
     }
     el.scrollBy({ left: dir * cardAmount(), behavior: "smooth" });
   };
-
-  // Wrap on any scroll (manual drag, momentum, or autoplay).
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el || !loop) return;
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        wrap();
-        ticking = false;
-      });
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, [loop]);
 
   // Auto-advance forever; paused while hovered.
   useEffect(() => {
@@ -87,7 +65,7 @@ export function ProductCarousel({
     <div className="group/carousel relative">
       <div
         ref={trackRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((product, i) => (
           <div
