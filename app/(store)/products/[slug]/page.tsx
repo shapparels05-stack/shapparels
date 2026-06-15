@@ -8,8 +8,6 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { RatingSummary } from "@/components/reviews/rating-summary";
 import { ProductReviews } from "@/components/reviews/product-reviews";
 import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
-import { ProductImages } from "@/components/products/product-images";
-import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { ProductCarousel } from "@/components/products/product-carousel";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
@@ -82,54 +80,44 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <BreadcrumbJsonLd items={breadcrumbItems} />
       <Breadcrumbs items={breadcrumbItems} />
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        {/* Images */}
-        <ProductImages
+      {/* Gallery (left) + info (right); the client component owns the layout so
+          selecting a colour can filter the gallery. */}
+      <div className="mt-8">
+        <ProductDetailClient
+          product={{
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            basePrice: product.basePrice,
+            compareAtPrice: product.compareAtPrice,
+            saleEndsAt: product.saleEndsAt,
+            stock: product.stock,
+            image: product.images[0]?.url || "",
+          }}
+          optionTypes={product.optionTypes}
+          variants={product.variants}
           images={product.images}
-          productName={product.name}
           discountPercent={discountPercent}
           code={product.code}
+          infoHeader={
+            <>
+              {product.category && (
+                <p className="text-sm font-medium uppercase tracking-wider text-primary">
+                  {product.category.name}
+                </p>
+              )}
+              <h1 className="mt-1 font-serif text-3xl font-bold sm:text-4xl">
+                {product.name}
+              </h1>
+              <a href="#reviews" className="mt-3 inline-block">
+                <RatingSummary average={ratingSummary.average} count={ratingSummary.count} />
+              </a>
+              {product.shortDescription && (
+                <p className="mt-3 text-muted-foreground">{product.shortDescription}</p>
+              )}
+            </>
+          }
         />
-
-        {/* Product Info */}
-        <div>
-          {product.category && (
-            <p className="text-sm font-medium uppercase tracking-wider text-primary">
-              {product.category.name}
-            </p>
-          )}
-          <h1 className="mt-1 font-serif text-3xl font-bold sm:text-4xl">
-            {product.name}
-          </h1>
-
-          <a href="#reviews" className="mt-3 inline-block">
-            <RatingSummary average={ratingSummary.average} count={ratingSummary.count} />
-          </a>
-
-          {product.shortDescription && (
-            <p className="mt-3 text-muted-foreground">
-              {product.shortDescription}
-            </p>
-          )}
-
-          {/* Client component for interactive variant selection + cart */}
-          <ProductDetailClient
-            product={{
-              id: product.id,
-              name: product.name,
-              slug: product.slug,
-              basePrice: product.basePrice,
-              compareAtPrice: product.compareAtPrice,
-              saleEndsAt: product.saleEndsAt,
-              stock: product.stock,
-              image: product.images[0]?.url || "",
-            }}
-            optionTypes={product.optionTypes}
-            variants={product.variants}
-          />
-
-          <ProductTrustBadges />
-        </div>
       </div>
 
       {/* Description / Details / Reviews Tabs */}

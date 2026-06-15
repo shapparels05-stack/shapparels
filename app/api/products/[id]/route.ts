@@ -77,10 +77,11 @@ export async function PUT(
       await db.delete(productImages).where(eq(productImages.productId, id));
       if (body.images.length > 0) {
         await db.insert(productImages).values(
-          body.images.map((url: string, index: number) => ({
+          body.images.map((img: string | { url: string; optionValue?: string | null }, index: number) => ({
             productId: id,
-            url,
+            url: typeof img === "string" ? img : img.url,
             alt: body.name,
+            optionValue: typeof img === "string" ? null : img.optionValue || null,
             sortOrder: index,
           }))
         );

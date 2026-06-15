@@ -56,13 +56,14 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    // Insert images
+    // Insert images (accepts plain URL strings or { url, optionValue } objects).
     if (body.images && body.images.length > 0) {
       await db.insert(productImages).values(
-        body.images.map((url: string, index: number) => ({
+        body.images.map((img: string | { url: string; optionValue?: string | null }, index: number) => ({
           productId: product.id,
-          url,
+          url: typeof img === "string" ? img : img.url,
           alt: parsed.name,
+          optionValue: typeof img === "string" ? null : img.optionValue || null,
           sortOrder: index,
         }))
       );

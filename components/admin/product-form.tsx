@@ -53,6 +53,15 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   const [images, setImages] = useState<string[]>(
     initialData?.images?.map((i: any) => i.url) || []
   );
+  // Which colour each image belongs to (image url -> option value label).
+  // "" = shown for all colours.
+  const [imageColors, setImageColors] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    for (const i of initialData?.images || []) {
+      if (i.optionValue) map[i.url] = i.optionValue;
+    }
+    return map;
+  });
   // Which saved variant's price represents this product in Best Sellers.
   const [bestSellerVariantId, setBestSellerVariantId] = useState<string>(
     initialData?.bestSellerVariantId || ""
@@ -97,6 +106,13 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   };
 
   const [optionTypes, setOptionTypes] = useState<OptionTypeInput[]>(buildInitialOptionTypes());
+
+  // Distinct colour/option value labels available to tag images with.
+  const colorOptions = Array.from(
+    new Set(
+      optionTypes.flatMap((ot) => ot.values.map((v) => v.label.trim()).filter(Boolean))
+    )
+  );
 
   const generateSlug = (name: string) =>
     name
@@ -182,7 +198,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      images,
+      images: images.map((url) => ({ url, optionValue: imageColors[url] || null })),
       optionTypes: cleanOptionTypes,
       variants,
     };
@@ -418,6 +434,38 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         </CardHeader>
         <CardContent>
           <ImageUpload images={images} onChange={setImages} />
+
+          {images.length > 0 && colorOptions.length > 0 && (
+            <div className="mt-5 space-y-2">
+              <p className="text-sm font-medium">Assign images to a colour (optional)</p>
+              <p className="text-xs text-muted-foreground">
+                When a customer selects a colour, only that colour&apos;s images show.
+                &quot;All colours&quot; images always show. Leave as-is to keep current behaviour.
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {images.map((url) => (
+                  <div key={url} className="flex items-center gap-2 rounded-md border border-border/50 p-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
+                    <select
+                      value={imageColors[url] || ""}
+                      onChange={(e) =>
+                        setImageColors((m) => ({ ...m, [url]: e.target.value }))
+                      }
+                      className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm"
+                    >
+                      <option value="">All colours</option>
+                      {colorOptions.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

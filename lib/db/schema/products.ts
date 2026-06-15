@@ -33,6 +33,8 @@ export const productImages = pgTable("product_images", {
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   alt: text("alt"),
+  // Color (option value label) this image belongs to; null = shown for all.
+  optionValue: text("option_value"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
