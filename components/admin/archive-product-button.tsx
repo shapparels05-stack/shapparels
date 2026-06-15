@@ -9,6 +9,7 @@ import { toast } from "sonner";
 interface ArchiveProductButtonProps {
   productId: string;
   isActive: boolean;
+  onChanged?: () => void;
 }
 
 /**
@@ -16,7 +17,7 @@ interface ArchiveProductButtonProps {
  * - When active → "Archive": hides from the public site, kept in admin.
  * - When archived → "Restore": brings it back to the storefront.
  */
-export function ArchiveProductButton({ productId, isActive }: ArchiveProductButtonProps) {
+export function ArchiveProductButton({ productId, isActive, onChanged }: ArchiveProductButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +33,8 @@ export function ArchiveProductButton({ productId, isActive }: ArchiveProductButt
       });
       if (!res.ok) throw new Error();
       toast.success(isActive ? "Product archived" : "Product restored");
-      router.refresh();
+      if (onChanged) onChanged();
+      else router.refresh();
     } catch {
       toast.error("Failed to update product");
     } finally {

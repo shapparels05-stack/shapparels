@@ -447,20 +447,24 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                   <div key={url} className="flex items-center gap-2 rounded-md border border-border/50 p-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={url} alt="" className="h-12 w-12 shrink-0 rounded object-cover" />
-                    <select
-                      value={imageColors[url] || ""}
-                      onChange={(e) =>
-                        setImageColors((m) => ({ ...m, [url]: e.target.value }))
+                    <Select
+                      value={imageColors[url] || "__all__"}
+                      onValueChange={(v) =>
+                        setImageColors((m) => ({ ...m, [url]: v === "__all__" ? "" : v }))
                       }
-                      className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm"
                     >
-                      <option value="">All colours</option>
-                      {colorOptions.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">All colours</SelectItem>
+                        {colorOptions.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 ))}
               </div>

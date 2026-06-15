@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
 import { PixelPageView } from "@/components/analytics/pixel-page-view";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
@@ -91,15 +92,17 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} font-sans antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster richColors position="top-right" />
-        </ThemeProvider>
+        <NuqsAdapter>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster richColors position="top-right" />
+          </ThemeProvider>
+        </NuqsAdapter>
         <PixelPageView />
       </body>
     </html>
