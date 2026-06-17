@@ -18,6 +18,19 @@ export function CookieBanner() {
     setVisible(false);
   };
 
+  // Continuing to browse (scrolling) counts as acceptance — hide on scroll.
+  useEffect(() => {
+    if (!visible) return;
+    const onScroll = () => {
+      if (window.scrollY > 120) {
+        localStorage.setItem(STORAGE_KEY, "accepted");
+        setVisible(false);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [visible]);
+
   if (!visible) return null;
 
   return (
