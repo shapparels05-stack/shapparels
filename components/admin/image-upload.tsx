@@ -7,13 +7,14 @@ import { toast } from "sonner";
 const MAX_WIDTH = 1600;
 const MAX_HEIGHT = 1600;
 const QUALITY = 0.85;
-const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB (under Vercel's 4.5MB limit)
 const CONCURRENCY = 4; // simultaneous uploads
 
+// Always downscale to <=1600px and re-encode to WebP. Since images are served
+// unoptimized (straight from R2), this keeps every upload small for mobile.
 function compressImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
-    // Skip if already small enough
-    if (file.size <= MAX_FILE_SIZE) {
+    // SVGs/GIFs etc. can't go through canvas cleanly — leave them as-is.
+    if (!/^image\/(jpeg|png|webp|avif)$/.test(file.type)) {
       resolve(file);
       return;
     }
@@ -22,7 +23,6 @@ function compressImage(file: File): Promise<File> {
     img.onload = () => {
       let { width, height } = img;
 
-      // Scale down if needed
       if (width > MAX_WIDTH || height > MAX_HEIGHT) {
         const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
         width = Math.round(width * ratio);
@@ -38,7 +38,8 @@ function compressImage(file: File): Promise<File> {
       canvas.toBlob(
         (blob) => {
           if (!blob) return reject(new Error("Compression failed"));
-          resolve(new File([blob], file.name, { type: "image/webp" }));
+          const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
+          resolve(new File([blob], name, { type: "image/webp" }));
         },
         "image/webp",
         QUALITY
