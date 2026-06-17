@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Upload, X, FolderUp } from "lucide-react";
+import { Upload, X, FolderUp, Star } from "lucide-react";
 import { toast } from "sonner";
 
 const MAX_WIDTH = 1600;
@@ -178,6 +178,13 @@ export function ImageUpload({ images, onChange }: ImageUploadProps) {
     onChange(images.filter((_, i) => i !== index));
   };
 
+  // Move an image to the front so it becomes the primary/first image
+  // (the product detail and listing pages show images[0] first).
+  const makePrimary = (index: number) => {
+    if (index === 0) return;
+    onChange([images[index], ...images.filter((_, i) => i !== index)]);
+  };
+
   return (
     <div className="space-y-4">
       {/* Existing images */}
@@ -186,10 +193,28 @@ export function ImageUpload({ images, onChange }: ImageUploadProps) {
           {images.map((url, index) => (
             <div
               key={index}
-              className="group relative h-24 w-24 overflow-hidden rounded-md border border-border/50"
+              className={`group relative h-24 w-24 overflow-hidden rounded-md border ${
+                index === 0 ? "border-primary ring-1 ring-primary" : "border-border/50"
+              }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={url} alt={`Product image ${index + 1}`} className="h-full w-full object-cover" />
+
+              {/* Make-primary star (top-left) */}
+              <button
+                type="button"
+                onClick={() => makePrimary(index)}
+                title={index === 0 ? "Primary image" : "Set as primary image"}
+                className={`absolute top-1 left-1 flex h-5 w-5 items-center justify-center rounded-full transition-opacity ${
+                  index === 0
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-black/50 text-white opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                <Star className={`h-3 w-3 ${index === 0 ? "fill-current" : ""}`} />
+              </button>
+
+              {/* Remove (top-right) */}
               <button
                 type="button"
                 onClick={() => removeImage(index)}
@@ -197,6 +222,12 @@ export function ImageUpload({ images, onChange }: ImageUploadProps) {
               >
                 <X className="h-3 w-3" />
               </button>
+
+              {index === 0 && (
+                <span className="absolute inset-x-0 bottom-0 bg-primary/90 py-0.5 text-center text-[9px] font-medium text-primary-foreground">
+                  Primary
+                </span>
+              )}
             </div>
           ))}
         </div>
