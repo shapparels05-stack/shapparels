@@ -29,6 +29,7 @@ export function Footer() {
                 { label: "About Us", href: "/about" },
                 { label: "Contact", href: "/contact" },
                 { label: "FAQ", href: "/faq" },
+                { label: "Returns & Exchanges", href: "/returns" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link
