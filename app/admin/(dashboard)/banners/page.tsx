@@ -210,6 +210,7 @@ export default function AdminBannersPage() {
                   },
                 ]}
                 forceVariant={previewDevice}
+                unoptimized
                 heightClass={previewDevice === "mobile" ? "h-[480px]" : "h-72 sm:h-80"}
               />
             </div>

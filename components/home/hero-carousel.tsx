@@ -116,11 +116,15 @@ export function HeroCarousel({
   slides,
   heightClass = "h-[70vh]",
   forceVariant,
+  unoptimized = false,
 }: {
   slides: HeroSlide[];
   heightClass?: string;
   // Force a single variant (used by the admin preview's device toggle).
   forceVariant?: "mobile" | "desktop";
+  // Skip the image optimizer (used in the admin preview so a freshly-uploaded
+  // image shows immediately instead of briefly breaking).
+  unoptimized?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const count = slides.length;
@@ -169,6 +173,7 @@ export function HeroCarousel({
               fill
               priority={i === 0}
               loading={i === 0 ? "eager" : "lazy"}
+              unoptimized={unoptimized}
               className={`object-cover object-[center_20%] ${desktopImg}`}
               sizes="100vw"
             />
@@ -179,6 +184,7 @@ export function HeroCarousel({
               fill
               priority={i === 0}
               loading={i === 0 ? "eager" : "lazy"}
+              unoptimized={unoptimized}
               className={`object-cover object-center ${mobileImg}`}
               sizes="100vw"
             />

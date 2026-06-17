@@ -194,25 +194,29 @@ export function ImageUpload({ images, onChange }: ImageUploadProps) {
             <div
               key={index}
               className={`group relative h-24 w-24 overflow-hidden rounded-md border ${
-                index === 0 ? "border-primary ring-1 ring-primary" : "border-border/50"
+                images.length > 1 && index === 0
+                  ? "border-primary ring-1 ring-primary"
+                  : "border-border/50"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt={`Product image ${index + 1}`} className="h-full w-full object-cover" />
+              <img src={url} alt={`Image ${index + 1}`} className="h-full w-full object-cover" />
 
-              {/* Make-primary star (top-left) */}
-              <button
-                type="button"
-                onClick={() => makePrimary(index)}
-                title={index === 0 ? "Primary image" : "Set as primary image"}
-                className={`absolute top-1 left-1 flex h-5 w-5 items-center justify-center rounded-full transition-opacity ${
-                  index === 0
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-black/50 text-white opacity-0 group-hover:opacity-100"
-                }`}
-              >
-                <Star className={`h-3 w-3 ${index === 0 ? "fill-current" : ""}`} />
-              </button>
+              {/* Make-primary star — only meaningful with multiple images */}
+              {images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => makePrimary(index)}
+                  title={index === 0 ? "Primary image" : "Set as primary image"}
+                  className={`absolute top-1 left-1 flex h-5 w-5 items-center justify-center rounded-full transition-opacity ${
+                    index === 0
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-black/50 text-white opacity-0 group-hover:opacity-100"
+                  }`}
+                >
+                  <Star className={`h-3 w-3 ${index === 0 ? "fill-current" : ""}`} />
+                </button>
+              )}
 
               {/* Remove (top-right) */}
               <button
@@ -223,7 +227,7 @@ export function ImageUpload({ images, onChange }: ImageUploadProps) {
                 <X className="h-3 w-3" />
               </button>
 
-              {index === 0 && (
+              {images.length > 1 && index === 0 && (
                 <span className="absolute inset-x-0 bottom-0 bg-primary/90 py-0.5 text-center text-[9px] font-medium text-primary-foreground">
                   Primary
                 </span>
