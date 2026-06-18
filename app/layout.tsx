@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
 import { PixelPageView } from "@/components/analytics/pixel-page-view";
+import { DebugConsole } from "@/components/debug-console";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SITE_URL } from "@/lib/constants";
 import "./globals.css";
@@ -104,6 +105,7 @@ export default function RootLayout({
           </ThemeProvider>
         </NuqsAdapter>
         <PixelPageView />
+        <DebugConsole />
       </body>
     </html>
   );
