@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { StarRating } from "@/components/reviews/star-rating";
+import { CardImage } from "./card-image";
 import { HoverImage } from "./hover-image";
 import { OfferCountdown } from "./offer-countdown";
 import { bucketDiscountPercent, activeCompareAtPrice, isLimitedOfferActive } from "@/lib/pricing";
@@ -43,12 +43,11 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="relative aspect-square overflow-hidden rounded-lg border border-border/50 bg-card">
         {primaryImage ? (
           <>
-            <Image
+            <CardImage
               src={primaryImage.url}
               alt={primaryImage.alt || product.name}
-              fill
               className="object-cover transition-opacity duration-500 group-hover:opacity-0"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
             {secondImage && (
               <HoverImage src={secondImage.url} alt={secondImage.alt || product.name} />

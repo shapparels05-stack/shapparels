@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth/server";
 import { r2Client } from "@/lib/r2/client";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { headers } from "next/headers";
+import sharp from "sharp";
+import { toThumbKey } from "@/lib/images";
 
 const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME!;
 
@@ -62,7 +64,29 @@ export async function POST(request: NextRequest) {
 
     const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
 
-    return NextResponse.json({ url: publicUrl, key });
+    // Generate a small ~500px WebP thumbnail alongside the original, stored as a
+    // static file in R2 (cards/carousels use it — no per-request transform cost).
+    let thumbUrl = publicUrl;
+    try {
+      const thumbBuffer = await sharp(buffer)
+        .resize({ width: 500, withoutEnlargement: true })
+        .webp({ quality: 72 })
+        .toBuffer();
+      const thumbKey = toThumbKey(key);
+      await r2Client.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET_NAME,
+          Key: thumbKey,
+          Body: thumbBuffer,
+          ContentType: "image/webp",
+        })
+      );
+      thumbUrl = `${process.env.R2_PUBLIC_URL}/${thumbKey}`;
+    } catch (e) {
+      console.error("Thumbnail generation failed (using full image):", e);
+    }
+
+    return NextResponse.json({ url: publicUrl, thumbUrl, key });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
