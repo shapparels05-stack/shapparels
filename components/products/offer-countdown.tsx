@@ -32,9 +32,13 @@ export function OfferCountdown({ endsAt, variant = "badge", className = "" }: Of
   useEffect(() => {
     setMounted(true);
     setRemaining(getRemaining(target));
-    const id = setInterval(() => setRemaining(getRemaining(target)), 1000);
+    // The compact card badge updates per-minute (seconds aren't readable at that
+    // size and per-second repaints cause overlay ghost-trails while scrolling on
+    // weak in-app browsers). The detail-page block keeps a live per-second tick.
+    const intervalMs = variant === "badge" ? 60000 : 1000;
+    const id = setInterval(() => setRemaining(getRemaining(target)), intervalMs);
     return () => clearInterval(id);
-  }, [target]);
+  }, [target, variant]);
 
   // Render nothing until mounted (avoids hydration mismatch) or once expired.
   if (!mounted || !remaining) return null;
@@ -43,7 +47,7 @@ export function OfferCountdown({ endsAt, variant = "badge", className = "" }: Of
     const label =
       remaining.days > 0
         ? `${remaining.days}d ${pad(remaining.hours)}h left`
-        : `${pad(remaining.hours)}:${pad(remaining.minutes)}:${pad(remaining.seconds)} left`;
+        : `${remaining.hours}h ${pad(remaining.minutes)}m left`;
     return (
       <span
         className={`inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2 py-0.5 text-[10px] font-semibold text-white ${className}`}

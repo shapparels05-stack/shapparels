@@ -64,8 +64,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-0 z-10 bg-black/50" />
         )}
 
-        {/* Badges */}
-        <div className="absolute top-2 left-2 z-20 flex flex-col gap-1">
+        {/* Badges — promoted to their own GPU layer so they don't leave
+            ghost trails when scrolling in weak in-app browsers (FB/Instagram). */}
+        <div className="absolute top-2 left-2 z-20 flex flex-col gap-1 [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform]">
           {isSoldOut && (
             <Badge variant="secondary" className="bg-neutral-800 text-white text-xs">
               Sold Out
