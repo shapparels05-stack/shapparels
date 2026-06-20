@@ -28,16 +28,16 @@ export function isLimitedOfferActive(saleEndsAt: Date | string | null | undefine
 }
 
 /**
- * The compareAtPrice to actually use for display. A discount whose deadline has
- * already passed is treated as expired (returns null), so the strike price and
- * "% OFF" badge disappear automatically once the timer runs out. A null
- * deadline leaves the discount permanently in effect.
+ * The compareAtPrice to actually use for display.
+ *
+ * The markdown is PERMANENT: as long as a compareAtPrice is set, the strike
+ * price and "% OFF" badge stay visible until the price is removed manually.
+ * A passed `saleEndsAt` deadline no longer hides the discount — it only ends
+ * the limited-time countdown (see {@link isLimitedOfferActive}). So once a
+ * timer runs out, the urgency badge disappears but the discount remains.
  */
 export function activeCompareAtPrice(
-  compareAtPrice: number | null,
-  saleEndsAt: Date | string | null | undefined
+  compareAtPrice: number | null
 ): number | null {
-  if (compareAtPrice == null) return null;
-  if (saleEndsAt && new Date(saleEndsAt).getTime() <= Date.now()) return null;
   return compareAtPrice;
 }

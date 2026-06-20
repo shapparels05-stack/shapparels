@@ -8,6 +8,8 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
 import { sendCapiEvents, capiContextFromRequest } from "@/lib/meta-capi";
+import { sendOrderPlacedEmails } from "@/lib/email";
+import { sendOrderPlacedWhatsApp } from "@/lib/whatsapp";
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -189,6 +191,36 @@ export async function POST(request: NextRequest) {
         },
       },
     ]).catch(() => {});
+
+    // Notify the customer (email if provided + WhatsApp) and the store.
+    // Both helpers swallow their own errors, so a notification hiccup can't
+    // break the order; awaited so they complete before the function suspends.
+    const notificationOrder = {
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+      shippingAddress: order.shippingAddress,
+      shippingCity: order.shippingCity,
+      shippingState: order.shippingState,
+      shippingZipCode: order.shippingZipCode,
+      shippingCountry: order.shippingCountry,
+      subtotal: order.subtotal,
+      shippingCost: order.shippingCost,
+      total: order.total,
+      notes: order.notes,
+      items: orderItems.map((i) => ({
+        productName: i.productName,
+        variantLabel: i.variantLabel,
+        quantity: i.quantity,
+        price: i.price,
+        total: i.total,
+      })),
+    };
+    await Promise.all([
+      sendOrderPlacedEmails(notificationOrder),
+      sendOrderPlacedWhatsApp(notificationOrder),
+    ]);
 
     return NextResponse.json(
       { orderNumber: order.orderNumber, orderId: order.id },

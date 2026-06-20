@@ -70,7 +70,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // An expired limited-time offer drops the discount entirely.
   const basePrice = parseFloat(product.basePrice);
   const rawCompareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
-  const compareAt = activeCompareAtPrice(rawCompareAt, product.saleEndsAt);
+  const compareAt = activeCompareAtPrice(rawCompareAt);
   const discountPercent =
     product.stock > 0 ? bucketDiscountPercent(basePrice, compareAt) : 0;
 

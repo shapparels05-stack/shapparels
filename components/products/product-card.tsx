@@ -29,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const price = parseFloat(product.basePrice);
   const rawCompareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
   // Drop the discount if its limited-time offer has already expired.
-  const compareAt = activeCompareAtPrice(rawCompareAt, product.saleEndsAt);
+  const compareAt = activeCompareAtPrice(rawCompareAt);
   const discountPercent = bucketDiscountPercent(price, compareAt);
   const hasDiscount = discountPercent > 0;
   const limitedOffer = hasDiscount && isLimitedOfferActive(product.saleEndsAt);

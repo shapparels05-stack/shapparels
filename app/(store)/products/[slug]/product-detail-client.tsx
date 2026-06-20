@@ -103,8 +103,8 @@ export function ProductDetailClient({
     : product.compareAtPrice
     ? parseFloat(product.compareAtPrice)
     : null;
-  // Expire the discount once the limited-time offer's deadline passes.
-  const displayCompareAt = activeCompareAtPrice(rawCompareAt, product.saleEndsAt);
+  // The markdown is permanent; only the countdown ends when the deadline passes.
+  const displayCompareAt = activeCompareAtPrice(rawCompareAt);
   const limitedOffer =
     !!displayCompareAt &&
     displayCompareAt > displayPrice &&

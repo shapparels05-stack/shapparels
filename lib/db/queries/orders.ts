@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { orders, orderItems, products } from "@/lib/db/schema";
+import { orders, orderItems, products, productVariants } from "@/lib/db/schema";
 import { eq, desc, sql, and } from "drizzle-orm";
 
 export async function createOrder(data: {
@@ -66,6 +66,45 @@ export async function getOrderByNumber(orderNumber: string) {
     .where(eq(orderItems.orderId, order.id));
 
   return { ...order, items };
+}
+
+export async function getOrderById(id: string) {
+  const [order] = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
+  if (!order) return null;
+
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, order.id));
+
+  return { ...order, items };
+}
+
+// Add the order's quantities back to product / variant stock. Used when an
+// order is cancelled so the inventory deducted at placement is released.
+export async function restockOrder(orderId: string) {
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, orderId));
+
+  await Promise.all(
+    items.map((item) => {
+      if (item.variantId) {
+        return db
+          .update(productVariants)
+          .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
+          .where(eq(productVariants.id, item.variantId));
+      }
+      if (item.productId) {
+        return db
+          .update(products)
+          .set({ stock: sql`${products.stock} + ${item.quantity}` })
+          .where(eq(products.id, item.productId));
+      }
+      return Promise.resolve();
+    })
+  );
 }
 
 export async function getOrders(options: {

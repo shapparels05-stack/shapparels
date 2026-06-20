@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CURRENCY_SYMBOL, ORDER_STATUSES } from "@/lib/constants";
 import { OrderStatusForm } from "./order-status-form";
+import { WhatsAppQuickMessage } from "@/components/admin/whatsapp-quick-message";
 
 interface OrderDetailPageProps {
   params: Promise<{ id: string }>;
@@ -31,7 +32,12 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
             })}
           </p>
         </div>
-        <OrderStatusForm orderId={order.id} currentStatus={order.status} />
+        <OrderStatusForm
+          orderId={order.id}
+          currentStatus={order.status}
+          currentTracking={order.trackingNumber}
+          currentCourier={order.courier}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -63,6 +69,39 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif">WhatsApp the customer</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <WhatsAppQuickMessage
+            order={{
+              orderNumber: order.orderNumber,
+              customerName: order.customerName,
+              customerEmail: order.customerEmail,
+              customerPhone: order.customerPhone,
+              shippingAddress: order.shippingAddress,
+              shippingCity: order.shippingCity,
+              shippingState: order.shippingState,
+              shippingZipCode: order.shippingZipCode,
+              shippingCountry: order.shippingCountry,
+              subtotal: order.subtotal,
+              shippingCost: order.shippingCost,
+              total: order.total,
+              trackingNumber: order.trackingNumber,
+              courier: order.courier,
+              items: items.map((i) => ({
+                productName: i.productName,
+                variantLabel: i.variantLabel,
+                quantity: i.quantity,
+                price: i.price,
+                total: i.total,
+              })),
+            }}
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
