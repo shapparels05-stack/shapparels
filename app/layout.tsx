@@ -58,19 +58,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Pixel stub + init only — defines window.fbq and queues calls
+            (PageView etc.) immediately, with NO network/library cost. The heavy
+            fbevents.js library is loaded lazily below and drains the queue once
+            it arrives, so tracking is preserved but off the critical path. */}
         <Script id="meta-pixel" strategy="afterInteractive">
           {`
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            !function(f,b,e,v,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
             n.callMethod.apply(n,arguments):n.queue.push(arguments)};
             if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
+            n.queue=[]}(window,document,'script');
             fbq('init', '1549926503362795');
           `}
         </Script>
+        <Script
+          id="meta-pixel-lib"
+          src="https://connect.facebook.net/en_US/fbevents.js"
+          strategy="lazyOnload"
+        />
         <noscript>
           <img
             height="1"
@@ -80,7 +85,7 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
-        <Script id="ms-clarity" strategy="afterInteractive">
+        <Script id="ms-clarity" strategy="lazyOnload">
           {`
             (function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

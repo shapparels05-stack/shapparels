@@ -175,7 +175,7 @@ export function AddToCartButton({
           disabled={outOfStock || allInCart}
         >
           <CreditCard className="mr-2 h-5 w-5" />
-          Checkout
+          Buy Now
         </Button>
       </div>
 
@@ -250,7 +250,7 @@ export function AddToCartButton({
               disabled={outOfStock || allInCart}
             >
               <CreditCard className="mr-2 h-4 w-4" />
-              Checkout
+              Buy Now
             </Button>
           </div>
         </div>
