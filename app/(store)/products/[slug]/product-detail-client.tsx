@@ -60,7 +60,15 @@ export function ProductDetailClient({
   code,
   infoHeader,
 }: ProductDetailClientProps) {
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
+    // Auto-select any option that has only one possible value (e.g. a product
+    // with a single colour) so the customer doesn't have to pick it manually.
+    const initial: Record<string, string> = {};
+    for (const ot of optionTypes) {
+      if (ot.values.length === 1) initial[ot.id] = ot.values[0].id;
+    }
+    return initial;
+  });
 
   // Fire ViewContent once per product view.
   useEffect(() => {
@@ -124,6 +132,17 @@ export function ProductDetailClient({
 
   const needsVariantSelection = optionTypes.length > 0 && !selectedVariant;
 
+  // Stock for the chosen variant (or the product itself when it has no options).
+  // Null while a multi-variant product still needs a selection.
+  const effectiveStock = selectedVariant
+    ? selectedVariant.stock
+    : optionTypes.length === 0
+    ? product.stock
+    : null;
+  const LOW_STOCK_THRESHOLD = 10;
+  const showLowStock =
+    effectiveStock !== null && effectiveStock > 0 && effectiveStock <= LOW_STOCK_THRESHOLD;
+
   const missingOptionsLabel = useMemo(() => {
     if (!needsVariantSelection) return null;
     const missing = optionTypes
@@ -177,6 +196,12 @@ export function ProductDetailClient({
             compareAtPrice={displayCompareAt}
             className="text-2xl"
           />
+
+          {showLowStock && (
+            <div className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 text-sm font-semibold text-destructive">
+              🔥 Hurry! Only {effectiveStock} {effectiveStock === 1 ? "piece" : "pieces"} left
+            </div>
+          )}
 
           {limitedOffer && product.saleEndsAt && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
