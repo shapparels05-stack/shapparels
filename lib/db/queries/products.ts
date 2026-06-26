@@ -13,6 +13,12 @@ import { eq, ne, and, desc, asc, ilike, or, sql, inArray, isNull } from "drizzle
 import { getRatingSummaries } from "@/lib/db/queries/reviews";
 import { getDescendantIds } from "@/lib/db/queries/categories";
 
+// Effective availability for the storefront: the SUM of variant stock when a
+// product has variants, otherwise its own top-level stock. Sales only decrement
+// variant stock, so deriving it here keeps "Sold Out" badges on listings
+// accurate without relying on a stale top-level value.
+const effectiveStockSql = sql<number>`COALESCE((SELECT SUM(${productVariants.stock}) FROM ${productVariants} WHERE ${productVariants.productId} = ${products.id}), ${products.stock})::int`;
+
 // Columns shared by the homepage product carousels.
 const homeProductColumns = {
   id: products.id,
@@ -21,7 +27,7 @@ const homeProductColumns = {
   basePrice: products.basePrice,
   compareAtPrice: products.compareAtPrice,
   saleEndsAt: products.saleEndsAt,
-  stock: products.stock,
+  stock: effectiveStockSql,
   isFeatured: products.isFeatured,
   categoryName: categories.name,
 };
@@ -334,7 +340,7 @@ export async function getProducts(options: GetProductsOptions = {}) {
         basePrice: products.basePrice,
         compareAtPrice: products.compareAtPrice,
         saleEndsAt: products.saleEndsAt,
-        stock: products.stock,
+        stock: effectiveStockSql,
         isFeatured: products.isFeatured,
         categoryName: categories.name,
       })
@@ -457,7 +463,7 @@ export async function getRelatedProducts(productId: string, categoryId: string |
       basePrice: products.basePrice,
       compareAtPrice: products.compareAtPrice,
       saleEndsAt: products.saleEndsAt,
-      stock: products.stock,
+      stock: effectiveStockSql,
       isFeatured: products.isFeatured,
       categoryName: categories.name,
     })

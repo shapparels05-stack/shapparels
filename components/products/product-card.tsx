@@ -69,7 +69,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-2 left-2 z-20 flex flex-col gap-1 [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform]">
           {isSoldOut && (
             <Badge variant="secondary" className="bg-neutral-800 text-white text-xs">
-              Sold Out
+              Out of Stock
             </Badge>
           )}
           {!isSoldOut && hasDiscount && (

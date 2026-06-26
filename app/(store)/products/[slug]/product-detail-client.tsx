@@ -143,6 +143,15 @@ export function ProductDetailClient({
   const showLowStock =
     effectiveStock !== null && effectiveStock > 0 && effectiveStock <= LOW_STOCK_THRESHOLD;
 
+  // Whole product is sold out: no-option product at 0, or every variant at 0.
+  const productSoldOut =
+    optionTypes.length === 0
+      ? product.stock <= 0
+      : variants.length > 0 && variants.every((v) => v.stock <= 0);
+  // Show the badge for a sold-out product or a sold-out chosen variant.
+  const showSoldOut =
+    productSoldOut || (!!selectedVariant && selectedVariant.stock <= 0);
+
   const missingOptionsLabel = useMemo(() => {
     if (!needsVariantSelection) return null;
     const missing = optionTypes
@@ -183,7 +192,8 @@ export function ProductDetailClient({
         key={selectedValueLabel ?? "all"}
         images={filteredImages}
         productName={product.name}
-        discountPercent={discountPercent}
+        discountPercent={showSoldOut ? 0 : discountPercent}
+        soldOut={showSoldOut}
         code={code}
       />
 
@@ -191,13 +201,20 @@ export function ProductDetailClient({
         {infoHeader}
 
         <div className="mt-6 space-y-6">
-          <PriceDisplay
-            price={displayPrice}
-            compareAtPrice={displayCompareAt}
-            className="text-2xl"
-          />
+          <div className="flex items-center gap-3">
+            <PriceDisplay
+              price={displayPrice}
+              compareAtPrice={displayCompareAt}
+              className="text-2xl"
+            />
+            {showSoldOut && (
+              <span className="inline-flex items-center rounded-md bg-neutral-800 px-3 py-1 text-sm font-semibold text-white">
+                Out of Stock
+              </span>
+            )}
+          </div>
 
-          {showLowStock && (
+          {showLowStock && !showSoldOut && (
             <div className="inline-flex items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 text-sm font-semibold text-destructive">
               🔥 Hurry! Only {effectiveStock} {effectiveStock === 1 ? "piece" : "pieces"} left
             </div>
@@ -230,7 +247,15 @@ export function ProductDetailClient({
             }}
             variantId={selectedVariant?.id || null}
             variantLabel={variantLabel}
-            stock={selectedVariant ? selectedVariant.stock : optionTypes.length === 0 ? product.stock : undefined}
+            stock={
+              productSoldOut
+                ? 0
+                : selectedVariant
+                ? selectedVariant.stock
+                : optionTypes.length === 0
+                ? product.stock
+                : undefined
+            }
             needsVariantSelection={needsVariantSelection}
             missingOptionsLabel={missingOptionsLabel}
           />

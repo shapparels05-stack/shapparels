@@ -9,9 +9,10 @@ interface ProductImagesProps {
   productName: string;
   discountPercent?: number;
   code?: string | null;
+  soldOut?: boolean;
 }
 
-export function ProductImages({ images, productName, discountPercent, code }: ProductImagesProps) {
+export function ProductImages({ images, productName, discountPercent, code, soldOut }: ProductImagesProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   if (images.length === 0) {
@@ -34,7 +35,14 @@ export function ProductImages({ images, productName, discountPercent, code }: Pr
           sizes="(max-width: 768px) 100vw, 50vw"
           priority
         />
-        {discountPercent && discountPercent > 0 ? (
+        {soldOut ? (
+          <Badge
+            variant="secondary"
+            className="absolute left-3 top-3 z-10 bg-neutral-800 px-3 py-1 text-base font-bold text-white sm:text-lg"
+          >
+            Out of Stock
+          </Badge>
+        ) : discountPercent && discountPercent > 0 ? (
           <Badge
             variant="destructive"
             className="absolute left-3 top-3 z-10 px-3 py-1 text-base font-bold sm:text-lg"

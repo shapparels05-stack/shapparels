@@ -107,6 +107,16 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
   const [optionTypes, setOptionTypes] = useState<OptionTypeInput[]>(buildInitialOptionTypes());
 
+  // Top-level stock is derived from variants when any exist (read-only).
+  const activeVariantValues = optionTypes
+    .filter((ot) => ot.name && ot.values.some((v) => v.label.trim()))
+    .flatMap((ot) => ot.values.filter((v) => v.label.trim()));
+  const hasVariants = activeVariantValues.length > 0;
+  const variantStockTotal = activeVariantValues.reduce(
+    (sum, v) => sum + (parseInt(v.stock) || 0),
+    0
+  );
+
   // Distinct colour/option value labels available to tag images with.
   const colorOptions = Array.from(
     new Set(
@@ -186,7 +196,12 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         ? parseFloat(formData.get("compareAtPrice") as string)
         : null,
       saleEndsAt: (formData.get("saleEndsAt") as string) || null,
-      stock: parseInt(formData.get("stock") as string) || 0,
+      // With variants, the top-level stock is the sum of variant stock (the
+      // field is read-only in the UI). Without variants, use the entered value.
+      stock:
+        variants.length > 0
+          ? variants.reduce((sum, v) => sum + v.stock, 0)
+          : parseInt(formData.get("stock") as string) || 0,
       categoryId: formData.get("categoryId") as string || null,
       metaTitle: formData.get("metaTitle") as string,
       metaDescription: formData.get("metaDescription") as string,
@@ -317,15 +332,35 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="stock">Base Stock Quantity</Label>
-            <Input
-              id="stock"
-              name="stock"
-              type="number"
-              min="0"
-              defaultValue={initialData?.stock ?? 0}
-            />
-            <p className="text-xs text-muted-foreground">Used when no variants are added</p>
+            <Label htmlFor="stock">
+              {hasVariants ? "Total Stock (from variants)" : "Base Stock Quantity"}
+            </Label>
+            {hasVariants ? (
+              <Input
+                key="stock-derived"
+                id="stock"
+                name="stock"
+                type="number"
+                value={variantStockTotal}
+                readOnly
+                tabIndex={-1}
+                className="cursor-not-allowed bg-muted text-muted-foreground"
+              />
+            ) : (
+              <Input
+                key="stock-base"
+                id="stock"
+                name="stock"
+                type="number"
+                min="0"
+                defaultValue={initialData?.stock ?? 0}
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              {hasVariants
+                ? "Auto-calculated as the sum of all variant stock."
+                : "Used when no variants are added"}
+            </p>
           </div>
           <div className="space-y-2 sm:col-span-3">
             <Label htmlFor="saleEndsAt">Limited-Time Offer Ends</Label>

@@ -71,8 +71,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const basePrice = parseFloat(product.basePrice);
   const rawCompareAt = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
   const compareAt = activeCompareAtPrice(rawCompareAt);
+  // Real availability: sum of variant stock when the product has variants.
+  const effectiveStock = product.variants?.length
+    ? product.variants.reduce((s: number, v: { stock: number }) => s + (v.stock || 0), 0)
+    : product.stock;
   const discountPercent =
-    product.stock > 0 ? bucketDiscountPercent(basePrice, compareAt) : 0;
+    effectiveStock > 0 ? bucketDiscountPercent(basePrice, compareAt) : 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
