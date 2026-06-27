@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
+import { currentDeadline } from "@/lib/pricing";
 
 interface OfferCountdownProps {
   endsAt: string | Date;
+  /** When set, the countdown rolls forward this many hours and restarts. */
+  repeatHours?: number | null;
   /** "badge" = compact pill for cards; "full" = labelled blocks for detail. */
   variant?: "badge" | "full";
   className?: string;
@@ -24,21 +27,24 @@ function getRemaining(target: number) {
 
 const pad = (n: number) => n.toString().padStart(2, "0");
 
-export function OfferCountdown({ endsAt, variant = "badge", className = "" }: OfferCountdownProps) {
-  const target = new Date(endsAt).getTime();
+export function OfferCountdown({ endsAt, repeatHours, variant = "badge", className = "" }: OfferCountdownProps) {
   const [remaining, setRemaining] = useState<ReturnType<typeof getRemaining>>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setRemaining(getRemaining(target));
+    // Recompute the live deadline each tick: for a repeating offer this rolls
+    // forward to the next window, so the countdown restarts instead of ending.
+    const tick = () =>
+      setRemaining(getRemaining(currentDeadline(endsAt, repeatHours)?.getTime() ?? 0));
+    tick();
     // The compact card badge updates per-minute (seconds aren't readable at that
     // size and per-second repaints cause overlay ghost-trails while scrolling on
     // weak in-app browsers). The detail-page block keeps a live per-second tick.
     const intervalMs = variant === "badge" ? 60000 : 1000;
-    const id = setInterval(() => setRemaining(getRemaining(target)), intervalMs);
+    const id = setInterval(tick, intervalMs);
     return () => clearInterval(id);
-  }, [target, variant]);
+  }, [endsAt, repeatHours, variant]);
 
   // Render nothing until mounted (avoids hydration mismatch) or once expired.
   if (!mounted || !remaining) return null;

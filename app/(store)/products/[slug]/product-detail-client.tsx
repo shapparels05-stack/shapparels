@@ -40,6 +40,7 @@ interface ProductDetailClientProps {
     basePrice: string;
     compareAtPrice: string | null;
     saleEndsAt?: Date | string | null;
+    saleRepeatHours?: number | null;
     stock: number;
     image: string;
   };
@@ -116,7 +117,7 @@ export function ProductDetailClient({
   const limitedOffer =
     !!displayCompareAt &&
     displayCompareAt > displayPrice &&
-    isLimitedOfferActive(product.saleEndsAt);
+    isLimitedOfferActive(product.saleEndsAt, product.saleRepeatHours);
 
   const variantLabel = useMemo(() => {
     if (!selectedVariant || optionTypes.length === 0) return null;
@@ -225,7 +226,11 @@ export function ProductDetailClient({
               <p className="mb-2 text-sm font-semibold text-destructive">
                 ⚡ Limited-time offer ends in
               </p>
-              <OfferCountdown endsAt={product.saleEndsAt} variant="full" />
+              <OfferCountdown
+                endsAt={product.saleEndsAt}
+                repeatHours={product.saleRepeatHours}
+                variant="full"
+              />
             </div>
           )}
 

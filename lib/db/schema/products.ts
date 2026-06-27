@@ -14,6 +14,10 @@ export const products = pgTable("products", {
   // When set, the compareAtPrice discount is a limited-time offer that expires
   // at this moment (drives countdowns; discount auto-hides once past).
   saleEndsAt: timestamp("sale_ends_at", { withTimezone: true }),
+  // When set (hours), the limited-time offer auto-repeats: once saleEndsAt
+  // passes, the live deadline rolls forward in this interval indefinitely so
+  // the countdown perpetually resets. Null = no repeat.
+  saleRepeatHours: integer("sale_repeat_hours"),
   categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),

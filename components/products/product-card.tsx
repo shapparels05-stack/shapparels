@@ -16,6 +16,7 @@ interface ProductCardProps {
     basePrice: string;
     compareAtPrice: string | null;
     saleEndsAt?: Date | string | null;
+    saleRepeatHours?: number | null;
     stock: number;
     isFeatured: boolean;
     categoryName?: string | null;
@@ -32,7 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const compareAt = activeCompareAtPrice(rawCompareAt);
   const discountPercent = bucketDiscountPercent(price, compareAt);
   const hasDiscount = discountPercent > 0;
-  const limitedOffer = hasDiscount && isLimitedOfferActive(product.saleEndsAt);
+  const limitedOffer = hasDiscount && isLimitedOfferActive(product.saleEndsAt, product.saleRepeatHours);
   const isSoldOut = product.stock <= 0;
   const displayName = product.code ? `${product.code} - ${product.name}` : product.name;
   const primaryImage = product.images[0];
@@ -78,7 +79,11 @@ export function ProductCard({ product }: ProductCardProps) {
             </Badge>
           )}
           {!isSoldOut && limitedOffer && product.saleEndsAt && (
-            <OfferCountdown endsAt={product.saleEndsAt} variant="badge" />
+            <OfferCountdown
+              endsAt={product.saleEndsAt}
+              repeatHours={product.saleRepeatHours}
+              variant="badge"
+            />
           )}
           {!isSoldOut && product.isFeatured && (
             <Badge className="bg-primary text-primary-foreground text-xs">

@@ -95,6 +95,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             basePrice: product.basePrice,
             compareAtPrice: product.compareAtPrice,
             saleEndsAt: product.saleEndsAt,
+            saleRepeatHours: product.saleRepeatHours,
             stock: product.stock,
             image: product.images[0]?.url || "",
           }}

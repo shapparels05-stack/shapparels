@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         basePrice: parsed.basePrice.toString(),
         compareAtPrice: parsed.compareAtPrice?.toString() ?? null,
         saleEndsAt: parsed.saleEndsAt ?? null,
+        saleRepeatHours: parsed.saleRepeatHours ?? null,
         categoryId: parsed.categoryId ?? null,
         metaTitle: parsed.metaTitle,
         metaDescription: parsed.metaDescription,

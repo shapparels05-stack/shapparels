@@ -27,6 +27,7 @@ const homeProductColumns = {
   basePrice: products.basePrice,
   compareAtPrice: products.compareAtPrice,
   saleEndsAt: products.saleEndsAt,
+  saleRepeatHours: products.saleRepeatHours,
   stock: effectiveStockSql,
   isFeatured: products.isFeatured,
   categoryName: categories.name,
@@ -39,6 +40,7 @@ type HomeProductRow = {
   basePrice: string;
   compareAtPrice: string | null;
   saleEndsAt: Date | null;
+  saleRepeatHours: number | null;
   stock: number;
   isFeatured: boolean;
   categoryName: string | null;
@@ -245,7 +247,8 @@ export async function getLimitedTimeDeals(limit = 8) {
       and(
         eq(products.isActive, true),
         sql`${products.saleEndsAt} is not null`,
-        sql`${products.saleEndsAt} > now()`,
+        // Future deadline, OR a repeating offer (always effectively active).
+        sql`(${products.saleEndsAt} > now() OR ${products.saleRepeatHours} is not null)`,
         sql`${products.compareAtPrice} is not null`,
         sql`CAST(${products.compareAtPrice} AS DECIMAL) > CAST(${products.basePrice} AS DECIMAL)`
       )
@@ -263,6 +266,7 @@ export type ProductListItem = {
   basePrice: string;
   compareAtPrice: string | null;
   saleEndsAt: Date | null;
+  saleRepeatHours: number | null;
   stock: number;
   isFeatured: boolean;
   categoryName: string | null;
@@ -340,6 +344,7 @@ export async function getProducts(options: GetProductsOptions = {}) {
         basePrice: products.basePrice,
         compareAtPrice: products.compareAtPrice,
         saleEndsAt: products.saleEndsAt,
+        saleRepeatHours: products.saleRepeatHours,
         stock: effectiveStockSql,
         isFeatured: products.isFeatured,
         categoryName: categories.name,
@@ -463,6 +468,7 @@ export async function getRelatedProducts(productId: string, categoryId: string |
       basePrice: products.basePrice,
       compareAtPrice: products.compareAtPrice,
       saleEndsAt: products.saleEndsAt,
+      saleRepeatHours: products.saleRepeatHours,
       stock: effectiveStockSql,
       isFeatured: products.isFeatured,
       categoryName: categories.name,

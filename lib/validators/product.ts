@@ -12,6 +12,11 @@ export const productCreateSchema = z.object({
     (v) => (v === "" || v == null ? null : v),
     z.coerce.date().nullable().optional()
   ),
+  // Hours between auto-repeats of the limited-time offer. Null = no repeat.
+  saleRepeatHours: z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    z.coerce.number().int().positive().nullable().optional()
+  ),
   categoryId: z.string().uuid().optional().nullable(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),

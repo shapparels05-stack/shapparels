@@ -7,6 +7,7 @@ interface Product {
   basePrice: string;
   compareAtPrice: string | null;
   saleEndsAt?: Date | string | null;
+  saleRepeatHours?: number | null;
   stock: number;
   isFeatured: boolean;
   categoryName?: string | null;

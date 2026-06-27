@@ -107,6 +107,12 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
   const [optionTypes, setOptionTypes] = useState<OptionTypeInput[]>(buildInitialOptionTypes());
 
+  // Limited-time offer auto-repeat (rolls the countdown forward each interval).
+  const [saleRepeat, setSaleRepeat] = useState<boolean>(!!initialData?.saleRepeatHours);
+  const [saleRepeatHours, setSaleRepeatHours] = useState<string>(
+    initialData?.saleRepeatHours?.toString() || "24"
+  );
+
   // Top-level stock is derived from variants when any exist (read-only).
   const activeVariantValues = optionTypes
     .filter((ot) => ot.name && ot.values.some((v) => v.label.trim()))
@@ -196,6 +202,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         ? parseFloat(formData.get("compareAtPrice") as string)
         : null,
       saleEndsAt: (formData.get("saleEndsAt") as string) || null,
+      saleRepeatHours: saleRepeat ? parseInt(saleRepeatHours) || null : null,
       // With variants, the top-level stock is the sum of variant stock (the
       // field is read-only in the UI). Without variants, use the entered value.
       stock:
@@ -371,9 +378,57 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
               defaultValue={toDatetimeLocal(initialData?.saleEndsAt)}
             />
             <p className="text-xs text-muted-foreground">
-              Optional. When set with a Compare At Price, a countdown shows and the
-              discount expires automatically at this time. Leave blank for a permanent markdown.
+              Optional. When set with a Compare At Price, a countdown shows. Leave blank for a permanent markdown.
             </p>
+
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="saleRepeat"
+                  checked={saleRepeat}
+                  onCheckedChange={(c) => setSaleRepeat(c === true)}
+                />
+                <Label htmlFor="saleRepeat">Repeat offer</Label>
+              </div>
+              {saleRepeat && (
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="saleRepeatHours" className="text-sm">Repeat every</Label>
+                  <Input
+                    id="saleRepeatHours"
+                    type="number"
+                    min="1"
+                    value={saleRepeatHours}
+                    onChange={(e) => setSaleRepeatHours(e.target.value)}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-muted-foreground">hours</span>
+                  <div className="flex gap-1">
+                    {[
+                      { label: "12h", h: "12" },
+                      { label: "24h", h: "24" },
+                      { label: "48h", h: "48" },
+                      { label: "7d", h: "168" },
+                    ].map((p) => (
+                      <Button
+                        key={p.h}
+                        type="button"
+                        size="sm"
+                        variant={saleRepeatHours === p.h ? "default" : "outline"}
+                        onClick={() => setSaleRepeatHours(p.h)}
+                      >
+                        {p.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            {saleRepeat && (
+              <p className="text-xs text-muted-foreground">
+                After the end time passes, the countdown automatically restarts for the next
+                interval — perpetual urgency until you turn Repeat off.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

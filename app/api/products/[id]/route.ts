@@ -55,6 +55,7 @@ export async function PUT(
         basePrice: body.basePrice?.toString(),
         compareAtPrice: body.compareAtPrice?.toString() ?? null,
         saleEndsAt: body.saleEndsAt ? new Date(body.saleEndsAt) : null,
+        saleRepeatHours: body.saleRepeatHours ? Number(body.saleRepeatHours) : null,
         categoryId: body.categoryId || null,
         metaTitle: body.metaTitle,
         metaDescription: body.metaDescription,

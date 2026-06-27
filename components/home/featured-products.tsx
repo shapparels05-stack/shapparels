@@ -13,6 +13,7 @@ export async function FeaturedProducts() {
       basePrice: products.basePrice,
       compareAtPrice: products.compareAtPrice,
       saleEndsAt: products.saleEndsAt,
+      saleRepeatHours: products.saleRepeatHours,
       stock: products.stock,
       isFeatured: products.isFeatured,
       categoryName: categories.name,

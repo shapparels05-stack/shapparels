@@ -19,12 +19,39 @@ export function bucketDiscountPercent(
 }
 
 /**
- * A limited-time offer is "active" only when it has a deadline still in the
- * future. A null deadline means a permanent markdown (not time-boxed).
+ * The live deadline for a countdown. Normally this is just `saleEndsAt`, but
+ * when `repeatHours` is set and the deadline has passed, it rolls forward in
+ * whole `repeatHours` intervals to the next future boundary — so a repeating
+ * offer's countdown perpetually resets without any cron/background job.
+ * Returns null when there's no deadline.
  */
-export function isLimitedOfferActive(saleEndsAt: Date | string | null | undefined): boolean {
-  if (!saleEndsAt) return false;
-  return new Date(saleEndsAt).getTime() > Date.now();
+export function currentDeadline(
+  saleEndsAt: Date | string | null | undefined,
+  repeatHours?: number | null
+): Date | null {
+  if (!saleEndsAt) return null;
+  const end = new Date(saleEndsAt).getTime();
+  if (isNaN(end)) return null;
+  if (!repeatHours || repeatHours <= 0) return new Date(end);
+  const now = Date.now();
+  if (end > now) return new Date(end);
+  const step = repeatHours * 3600_000;
+  const periods = Math.ceil((now - end) / step);
+  return new Date(end + periods * step);
+}
+
+/**
+ * A limited-time offer is "active" only when its (possibly repeated) deadline is
+ * still in the future. A null deadline means a permanent markdown (not
+ * time-boxed). A repeating offer is effectively always active.
+ */
+export function isLimitedOfferActive(
+  saleEndsAt: Date | string | null | undefined,
+  repeatHours?: number | null
+): boolean {
+  const deadline = currentDeadline(saleEndsAt, repeatHours);
+  if (!deadline) return false;
+  return deadline.getTime() > Date.now();
 }
 
 /**
