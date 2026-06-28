@@ -286,8 +286,19 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
-              <Input id="slug" name="slug" required defaultValue={initialData?.slug} />
+              <Label htmlFor="slug">Slug (URL)</Label>
+              <Input
+                id="slug"
+                name="slug"
+                required
+                readOnly
+                defaultValue={initialData?.slug}
+                tabIndex={-1}
+                className="cursor-not-allowed bg-muted text-muted-foreground"
+              />
+              <p className="text-xs text-muted-foreground">
+                Auto-generated from the name and locked — editing it would break existing links.
+              </p>
             </div>
           </div>
 

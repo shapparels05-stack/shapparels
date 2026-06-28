@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { productCreateSchema } from "@/lib/validators/product";
+import { normalizeSlug } from "@/lib/slug";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
       .values({
         name: parsed.name,
         code: parsed.code ?? null,
-        slug: parsed.slug,
+        slug: normalizeSlug(parsed.slug),
         description: parsed.description,
         shortDescription: parsed.shortDescription,
         basePrice: parsed.basePrice.toString(),

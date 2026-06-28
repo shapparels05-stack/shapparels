@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { normalizeSlug } from "@/lib/slug";
 
 // Refresh the static homepage + listing and the product's own (ISR-cached)
 // detail page after a change, so edits show up immediately.
@@ -43,13 +44,20 @@ export async function PUT(
   try {
     const body = await request.json();
 
+    // Always store a clean slug (lowercase, no spaces/special chars) so product
+    // URLs can never 404 from malformed input. Fall back to the name if needed.
+    const safeSlug = normalizeSlug(body.slug || "") || normalizeSlug(body.name || "");
+    if (!safeSlug) {
+      return NextResponse.json({ error: "A valid name or slug is required" }, { status: 400 });
+    }
+
     // Update product
     const [updated] = await db
       .update(products)
       .set({
         name: body.name,
         code: body.code ?? null,
-        slug: body.slug,
+        slug: safeSlug,
         description: body.description,
         shortDescription: body.shortDescription,
         basePrice: body.basePrice?.toString(),
