@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { X } from "lucide-react";
 
@@ -65,14 +64,14 @@ export function PromoPopup({ popups }: { popups: Popup[] }) {
     setActive(null);
   };
 
+  // Fixed 4:5 portrait box so every popup looks consistent (recommended upload
+  // size: 1080 x 1350). object-cover fills the box cleanly.
   const poster = (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src={active.imageUrl}
       alt={active.title || "Special offer"}
-      width={720}
-      height={900}
-      className="h-auto w-full object-contain"
-      priority
+      className="h-full w-full object-cover"
     />
   );
 
@@ -84,7 +83,7 @@ export function PromoPopup({ popups }: { popups: Popup[] }) {
       aria-modal="true"
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-md overflow-hidden rounded-lg"
+        className="relative w-full max-w-[20rem]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -95,11 +94,15 @@ export function PromoPopup({ popups }: { popups: Popup[] }) {
           <X className="h-5 w-5" />
         </button>
         {active.linkUrl ? (
-          <Link href={active.linkUrl} onClick={() => markSeen(active)} className="block">
+          <Link
+            href={active.linkUrl}
+            onClick={() => markSeen(active)}
+            className="block aspect-[4/5] overflow-hidden rounded-lg"
+          >
             {poster}
           </Link>
         ) : (
-          poster
+          <div className="aspect-[4/5] overflow-hidden rounded-lg">{poster}</div>
         )}
       </div>
     </div>

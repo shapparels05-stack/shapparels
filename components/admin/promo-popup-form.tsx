@@ -78,7 +78,8 @@ export function PromoPopupForm({ initialData }: PromoPopupFormProps) {
         <CardContent className="space-y-2">
           <ImageUpload images={images} onChange={(imgs) => setImages(imgs.slice(-1))} />
           <p className="text-xs text-muted-foreground">
-            One poster image. Portrait works best for a popup. Uploading a new one replaces it.
+            Recommended size: <strong>1080 × 1350 px (4:5 portrait)</strong> — all popups use this
+            ratio for a consistent look. Keep key text centered. Uploading a new image replaces it.
           </p>
         </CardContent>
       </Card>
