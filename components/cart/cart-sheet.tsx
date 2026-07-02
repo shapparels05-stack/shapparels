@@ -76,7 +76,7 @@ export function CartSheet() {
                     <div className="flex flex-1 flex-col justify-between min-w-0">
                       <div>
                         <Link
-                          href={`/products/${item.slug}`}
+                          href={item.isBundle ? `/special-offers/${item.slug}` : `/products/${item.slug}`}
                           onClick={closeSheet}
                           className="font-serif text-sm font-medium hover:text-primary transition-colors line-clamp-2"
                         >

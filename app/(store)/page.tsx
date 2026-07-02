@@ -7,6 +7,8 @@ import { BestSellers } from "@/components/home/best-sellers";
 import { HomeReviews } from "@/components/home/home-reviews";
 import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { DeferUntilVisible } from "@/components/shared/defer-until-visible";
+import { PromoPopup } from "@/components/layout/promo-popup";
+import { getActivePromoPopups } from "@/lib/db/queries/promo-popups";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -31,9 +33,11 @@ function ProductsSkeleton() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const promoPopups = await getActivePromoPopups();
   return (
     <>
+      <PromoPopup popups={promoPopups} />
       <HomeHero />
       <Suspense fallback={<ProductsSkeleton />}>
         <LimitedTimeDeals />

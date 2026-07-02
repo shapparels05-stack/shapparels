@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, FolderOpen, MessageCircle, Star, GalleryHorizontalEnd, Megaphone, Settings, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, FolderOpen, MessageCircle, Star, GalleryHorizontalEnd, Megaphone, Settings, LogOut, Menu, X, Sparkles, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,9 @@ import { SITE_NAME } from "@/lib/constants";
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Special Offers", href: "/admin/special-offers", icon: Sparkles },
   { label: "Carousel", href: "/admin/banners", icon: GalleryHorizontalEnd },
+  { label: "Promo Popups", href: "/admin/promo-popups", icon: Images },
   { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Categories", href: "/admin/categories", icon: FolderOpen },

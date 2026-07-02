@@ -36,7 +36,7 @@ export function CartItem({ item }: CartItemProps) {
       <div className="flex flex-1 flex-col justify-between">
         <div>
           <Link
-            href={`/products/${item.slug}`}
+            href={item.isBundle ? `/special-offers/${item.slug}` : `/products/${item.slug}`}
             className="font-serif text-sm font-medium hover:text-primary transition-colors"
           >
             {item.name}

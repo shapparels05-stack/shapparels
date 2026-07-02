@@ -12,6 +12,11 @@ export type CartItem = {
   variantLabel: string | null;
   quantity: number;
   maxStock?: number;
+  // Bundle / special-offer lines: mark the item and carry the offer id +
+  // component product ids so checkout can deduct each product's stock.
+  isBundle?: boolean;
+  offerId?: string;
+  bundleProductIds?: string[];
 };
 
 type CartStore = {

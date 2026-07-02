@@ -46,6 +46,7 @@ export function CheckoutForm() {
         price: item.price,
         quantity: item.quantity,
         total: item.price * item.quantity,
+        offerId: item.offerId ?? null,
       })),
     };
 

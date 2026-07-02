@@ -22,6 +22,7 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/products" },
+  { label: "Special Offers", href: "/special-offers" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const;

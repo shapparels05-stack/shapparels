@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, numeric, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, timestamp, numeric, pgEnum, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const orderStatusEnum = pgEnum("order_status", [
@@ -45,6 +45,9 @@ export const orderItems = pgTable("order_items", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
   total: numeric("total", { precision: 10, scale: 2 }).notNull(),
+  // For a bundle/special-offer line: the component products (and the specific
+  // variant deducted, if any), so cancelling the order restores each correctly.
+  bundleProductIds: jsonb("bundle_product_ids").$type<{ productId: string; variantId: string | null }[]>(),
 });
 
 export const ordersRelations = relations(orders, ({ many }) => ({

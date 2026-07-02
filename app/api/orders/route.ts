@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createOrder, generateOrderNumber, getOrders } from "@/lib/db/queries/orders";
 import { checkoutFormSchema } from "@/lib/validators/checkout";
 import { db } from "@/lib/db";
-import { products, productVariants } from "@/lib/db/schema";
+import { products, productVariants, specialOffers, specialOfferItems } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
@@ -55,6 +55,107 @@ export async function POST(request: NextRequest) {
     for (const item of items) {
       let verifiedPrice: number;
 
+      // Bundle / special-offer line: verify the offer, atomically deduct each
+      // component product's stock (rolling back on a mid-bundle shortfall), and
+      // record a single combined line item.
+      if (item.offerId) {
+        const [offer] = await db
+          .select()
+          .from(specialOffers)
+          .where(and(eq(specialOffers.id, item.offerId), eq(specialOffers.isActive, true))!)
+          .limit(1);
+        if (!offer) {
+          return NextResponse.json(
+            { error: `"${item.productName}" is no longer available.` },
+            { status: 400 }
+          );
+        }
+
+        const comps = await db
+          .select({
+            productId: specialOfferItems.productId,
+            variantId: specialOfferItems.variantId,
+            name: products.name,
+          })
+          .from(specialOfferItems)
+          .innerJoin(products, eq(products.id, specialOfferItems.productId))
+          .where(eq(specialOfferItems.offerId, offer.id));
+        if (comps.length === 0) {
+          return NextResponse.json(
+            { error: `"${offer.name}" is not available right now.` },
+            { status: 400 }
+          );
+        }
+
+        // For each component: deduct from a variant when the product has any
+        // (keeping the product's total in sync), else from the product stock.
+        const deducted: { productId: string; variantId: string | null }[] = [];
+        const rollback = async () => {
+          for (const d of deducted) {
+            if (d.variantId) {
+              await db
+                .update(productVariants)
+                .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
+                .where(eq(productVariants.id, d.variantId));
+            }
+            await db
+              .update(products)
+              .set({ stock: sql`${products.stock} + ${item.quantity}` })
+              .where(eq(products.id, d.productId));
+          }
+        };
+        const outOfStock = async (name: string) => {
+          await rollback();
+          return NextResponse.json(
+            { error: `Sorry, "${name}" in the ${offer.name} offer is out of stock.` },
+            { status: 409 }
+          );
+        };
+
+        for (const c of comps) {
+          if (c.variantId) {
+            // Deduct the exact variant the admin put in the bundle, atomically,
+            // and keep the product total in sync.
+            const [ok] = await db
+              .update(productVariants)
+              .set({ stock: sql`${productVariants.stock} - ${item.quantity}` })
+              .where(and(eq(productVariants.id, c.variantId), sql`${productVariants.stock} >= ${item.quantity}`)!)
+              .returning();
+            if (!ok) return outOfStock(c.name);
+            await db
+              .update(products)
+              .set({ stock: sql`${products.stock} - ${item.quantity}` })
+              .where(eq(products.id, c.productId));
+            deducted.push({ productId: c.productId, variantId: c.variantId });
+          } else {
+            const [ok] = await db
+              .update(products)
+              .set({ stock: sql`${products.stock} - ${item.quantity}` })
+              .where(and(eq(products.id, c.productId), sql`${products.stock} >= ${item.quantity}`)!)
+              .returning();
+            if (!ok) return outOfStock(c.name);
+            deducted.push({ productId: c.productId, variantId: null });
+          }
+        }
+
+        verifiedPrice = parseFloat(offer.price);
+        const lineTotal = verifiedPrice * item.quantity;
+        subtotal += lineTotal;
+        orderItems.push({
+          productId: null,
+          productName: `${offer.code} - ${offer.name}`,
+          productSlug: offer.slug,
+          productImage: (offer.images && offer.images[0]) || item.productImage || null,
+          variantId: null,
+          variantLabel: `Bundle: ${comps.map((c) => c.name).join(", ")}`,
+          price: verifiedPrice.toFixed(2),
+          quantity: item.quantity,
+          total: lineTotal.toFixed(2),
+          bundleProductIds: deducted,
+        });
+        continue;
+      }
+
       if (item.variantId) {
         // Atomic: deduct stock only if enough available
         const [updated] = await db
@@ -88,6 +189,11 @@ export async function POST(request: NextRequest) {
           );
         }
         verifiedPrice = parseFloat(updated.price);
+        // Keep the parent product's total stock in sync with its variants.
+        await db
+          .update(products)
+          .set({ stock: sql`${products.stock} - ${item.quantity}` })
+          .where(eq(products.id, updated.productId));
       } else {
         // Atomic: deduct stock only if enough available
         const [updated] = await db

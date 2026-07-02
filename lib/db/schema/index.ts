@@ -7,3 +7,5 @@ export * from "./reviews";
 export * from "./banners";
 export * from "./announcements";
 export * from "./settings";
+export * from "./special-offers";
+export * from "./promo-popups";

@@ -16,7 +16,7 @@ export async function createOrder(data: {
   total: string;
   notes?: string;
   items: {
-    productId: string;
+    productId: string | null;
     productName: string;
     productSlug: string;
     productImage?: string | null;
@@ -25,6 +25,7 @@ export async function createOrder(data: {
     price: string;
     quantity: number;
     total: string;
+    bundleProductIds?: { productId: string; variantId: string | null }[] | null;
   }[];
 }) {
   const { items, ...orderData } = data;
@@ -44,6 +45,7 @@ export async function createOrder(data: {
         price: item.price,
         quantity: item.quantity,
         total: item.total,
+        bundleProductIds: item.bundleProductIds ?? null,
       }))
     );
   }
@@ -88,23 +90,38 @@ export async function restockOrder(orderId: string) {
     .from(orderItems)
     .where(eq(orderItems.orderId, orderId));
 
-  await Promise.all(
-    items.map((item) => {
-      if (item.variantId) {
-        return db
-          .update(productVariants)
-          .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
-          .where(eq(productVariants.id, item.variantId));
+  const ops: PromiseLike<unknown>[] = [];
+  const restoreVariant = (variantId: string, qty: number) =>
+    ops.push(
+      db
+        .update(productVariants)
+        .set({ stock: sql`${productVariants.stock} + ${qty}` })
+        .where(eq(productVariants.id, variantId))
+    );
+  const restoreProduct = (productId: string, qty: number) =>
+    ops.push(
+      db
+        .update(products)
+        .set({ stock: sql`${products.stock} + ${qty}` })
+        .where(eq(products.id, productId))
+    );
+
+  for (const item of items) {
+    if (item.variantId) {
+      // Restore the variant and keep the product total in sync.
+      restoreVariant(item.variantId, item.quantity);
+      if (item.productId) restoreProduct(item.productId, item.quantity);
+    } else if (item.bundleProductIds && item.bundleProductIds.length > 0) {
+      // Bundle line: restore each component's variant (+ product) or product.
+      for (const c of item.bundleProductIds) {
+        if (c.variantId) restoreVariant(c.variantId, item.quantity);
+        restoreProduct(c.productId, item.quantity);
       }
-      if (item.productId) {
-        return db
-          .update(products)
-          .set({ stock: sql`${products.stock} + ${item.quantity}` })
-          .where(eq(products.id, item.productId));
-      }
-      return Promise.resolve();
-    })
-  );
+    } else if (item.productId) {
+      restoreProduct(item.productId, item.quantity);
+    }
+  }
+  await Promise.all(ops);
 }
 
 export async function getOrders(options: {
