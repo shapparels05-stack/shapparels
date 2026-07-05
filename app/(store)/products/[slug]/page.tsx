@@ -9,6 +9,8 @@ import { RatingSummary } from "@/components/reviews/rating-summary";
 import { ProductReviews } from "@/components/reviews/product-reviews";
 import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
 import { ProductCarousel } from "@/components/products/product-carousel";
+import { getSpecialOffersForProduct } from "@/lib/db/queries/special-offers";
+import { SpecialOfferCard } from "@/components/special-offers/special-offer-card";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
 import { BreadcrumbJsonLd } from "@/components/shared/breadcrumb-jsonld";
@@ -49,13 +51,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const [categoryGroups, ratingSummary] = await Promise.all([
+  const [categoryGroups, ratingSummary, bundles] = await Promise.all([
     getProductsGroupedByCategory({
       perCategory: 12,
       excludeProductId: product.id,
       prioritizeCategoryId: product.categoryId ?? undefined,
     }),
     getProductRatingSummary(product.id),
+    getSpecialOffersForProduct(product.id),
   ]);
 
   const breadcrumbItems = [
@@ -173,6 +176,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
                 <ProductCarousel products={group.products} />
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Available in a bundle — cross-sell the special offers this product is in */}
+      {bundles.length > 0 && (
+        <div className="mt-16">
+          <h2 className="font-serif text-2xl font-bold">Grab It in a Bundle &amp; Save</h2>
+          <p className="mt-1 text-muted-foreground">
+            This item is part of a special offer — get more for less.
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {bundles.map((offer) => (
+              <SpecialOfferCard key={offer.id} offer={offer} />
             ))}
           </div>
         </div>

@@ -131,6 +131,28 @@ export interface SpecialOfferListItem {
   productCount: number;
 }
 
+type OfferRow = typeof specialOffers.$inferSelect;
+
+async function toListItem(o: OfferRow): Promise<SpecialOfferListItem> {
+  const offerProducts = await loadOfferProducts(o.id);
+  const { originalPrice, savings, available } = summarize(o.price, offerProducts);
+  const image = (o.images && o.images[0]) || offerProducts.find((p) => p.image)?.image || null;
+  return {
+    id: o.id,
+    code: o.code,
+    name: o.name,
+    slug: o.slug,
+    price: o.price,
+    image,
+    saleEndsAt: o.saleEndsAt,
+    saleRepeatHours: o.saleRepeatHours,
+    originalPrice,
+    savings,
+    available,
+    productCount: offerProducts.length,
+  };
+}
+
 export async function getActiveSpecialOffers(): Promise<SpecialOfferListItem[]> {
   const offers = await db
     .select()
@@ -138,27 +160,29 @@ export async function getActiveSpecialOffers(): Promise<SpecialOfferListItem[]> 
     .where(eq(specialOffers.isActive, true))
     .orderBy(asc(specialOffers.sortOrder), desc(specialOffers.createdAt));
 
-  return Promise.all(
-    offers.map(async (o) => {
-      const offerProducts = await loadOfferProducts(o.id);
-      const { originalPrice, savings, available } = summarize(o.price, offerProducts);
-      const image = (o.images && o.images[0]) || offerProducts.find((p) => p.image)?.image || null;
-      return {
-        id: o.id,
-        code: o.code,
-        name: o.name,
-        slug: o.slug,
-        price: o.price,
-        image,
-        saleEndsAt: o.saleEndsAt,
-        saleRepeatHours: o.saleRepeatHours,
-        originalPrice,
-        savings,
-        available,
-        productCount: offerProducts.length,
-      };
-    })
-  );
+  return Promise.all(offers.map(toListItem));
+}
+
+// Active special offers that include a given product (for cross-sell on the
+// product page).
+export async function getSpecialOffersForProduct(
+  productId: string
+): Promise<SpecialOfferListItem[]> {
+  const rows = await db
+    .select({ offerId: specialOfferItems.offerId })
+    .from(specialOfferItems)
+    .where(eq(specialOfferItems.productId, productId));
+
+  const offerIds = [...new Set(rows.map((r) => r.offerId))];
+  if (offerIds.length === 0) return [];
+
+  const offers = await db
+    .select()
+    .from(specialOffers)
+    .where(and(inArray(specialOffers.id, offerIds), eq(specialOffers.isActive, true)))
+    .orderBy(asc(specialOffers.sortOrder), desc(specialOffers.createdAt));
+
+  return Promise.all(offers.map(toListItem));
 }
 
 export async function getSpecialOfferBySlug(slug: string) {
