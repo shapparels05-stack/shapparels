@@ -48,15 +48,17 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="grid gap-8 lg:grid-cols-2">
-        <ProductImages
-          images={galleryImages}
-          productName={offer.name}
-          code={offer.code}
-          soldOut={soldOut}
-        />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="min-w-0">
+          <ProductImages
+            images={galleryImages}
+            productName={offer.name}
+            code={offer.code}
+            soldOut={soldOut}
+          />
+        </div>
 
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
             Special Offer
           </p>
@@ -115,13 +117,13 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
                         <Image src={p.image} alt={p.name} fill className="object-cover" sizes="48px" />
                       ) : null}
                     </div>
-                    <span className="text-sm">
+                    <span className="min-w-0 flex-1 truncate text-sm">
                       {p.name}
                       {p.variantLabel && (
                         <span className="text-muted-foreground"> — {p.variantLabel}</span>
                       )}
                     </span>
-                    <span className="ml-auto text-sm text-muted-foreground line-through">
+                    <span className="shrink-0 text-sm text-muted-foreground line-through">
                       {CURRENCY_SYMBOL} {parseFloat(p.unitPrice).toLocaleString()}
                     </span>
                   </Link>
