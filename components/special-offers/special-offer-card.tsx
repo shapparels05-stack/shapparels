@@ -55,7 +55,7 @@ export function SpecialOfferCard({ offer }: { offer: SpecialOfferListItem }) {
 
         <Badge
           variant="secondary"
-          className="absolute top-2 right-2 z-20 bg-primary/90 text-primary-foreground text-xs font-semibold"
+          className="absolute top-2 right-2 z-20 hidden bg-primary/90 text-primary-foreground text-xs font-semibold sm:inline-flex"
         >
           {offer.code}
         </Badge>
