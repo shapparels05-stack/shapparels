@@ -27,6 +27,8 @@ export const products = pgTable("products", {
   // Which variant's price to show in the Best Sellers section (optional).
   bestSellerVariantId: uuid("best_seller_variant_id"),
   isActive: boolean("is_active").notNull().default(true),
+  // For rings: the ring is adjustable to any finger size (shown on the detail page).
+  isResizeable: boolean("is_resizeable").notNull().default(false),
   tags: jsonb("tags").$type<string[]>().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

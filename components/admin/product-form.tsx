@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,6 +107,22 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
 
   const [optionTypes, setOptionTypes] = useState<OptionTypeInput[]>(buildInitialOptionTypes());
 
+  // Category + "resizeable" (only offered for rings).
+  const [categoryId, setCategoryId] = useState<string>(initialData?.categoryId || "");
+  const [isResizeable, setIsResizeable] = useState<boolean>(!!initialData?.isResizeable);
+  const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
+  // True when the selected category is "Ring" or a descendant of it (not "Ear Ring").
+  const isRingCategory = (id: string): boolean => {
+    let cur = id ? catById.get(id) : undefined;
+    let guard = 0;
+    while (cur && guard++ < 12) {
+      if ((cur.name || "").trim().toLowerCase() === "ring") return true;
+      cur = cur.parentId ? catById.get(cur.parentId) : undefined;
+    }
+    return false;
+  };
+  const ringSelected = isRingCategory(categoryId);
+
   // Limited-time offer auto-repeat (rolls the countdown forward each interval).
   const [saleRepeat, setSaleRepeat] = useState<boolean>(!!initialData?.saleRepeatHours);
   const [saleRepeatHours, setSaleRepeatHours] = useState<string>(
@@ -209,7 +225,8 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         variants.length > 0
           ? variants.reduce((sum, v) => sum + v.stock, 0)
           : parseInt(formData.get("stock") as string) || 0,
-      categoryId: formData.get("categoryId") as string || null,
+      categoryId: categoryId || null,
+      isResizeable: ringSelected ? isResizeable : false,
       metaTitle: formData.get("metaTitle") as string,
       metaDescription: formData.get("metaDescription") as string,
       isFeatured: formData.get("isFeatured") === "on",
@@ -451,7 +468,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="categoryId">Category</Label>
-            <Select name="categoryId" defaultValue={initialData?.categoryId || ""}>
+            <Select name="categoryId" value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -501,6 +518,22 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
               <Label htmlFor="isActive">Active</Label>
             </div>
           </div>
+
+          {ringSelected && (
+            <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-3">
+              <Checkbox
+                id="isResizeable"
+                checked={isResizeable}
+                onCheckedChange={(c) => setIsResizeable(c === true)}
+              />
+              <Label htmlFor="isResizeable">
+                Resizeable ring{" "}
+                <span className="text-xs font-normal text-muted-foreground">
+                  — shows a &quot;Resizeable&quot; note on the product page
+                </span>
+              </Label>
+            </div>
+          )}
 
           {savedVariants.length > 0 && (
             <div className="space-y-2">

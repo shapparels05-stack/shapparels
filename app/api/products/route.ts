@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         isBestSeller: parsed.isBestSeller,
         bestSellerVariantId: parsed.bestSellerVariantId ?? null,
         isActive: parsed.isActive,
+        isResizeable: parsed.isResizeable,
         tags: parsed.tags,
       })
       .returning();

@@ -41,6 +41,7 @@ interface ProductDetailClientProps {
     compareAtPrice: string | null;
     saleEndsAt?: Date | string | null;
     saleRepeatHours?: number | null;
+    isResizeable?: boolean;
     stock: number;
     image: string;
   };
@@ -231,6 +232,15 @@ export function ProductDetailClient({
                 repeatHours={product.saleRepeatHours}
                 variant="full"
               />
+            </div>
+          )}
+
+          {product.isResizeable && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Size</span>
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1 text-sm font-medium text-primary">
+                💍 Resizeable — adjustable to your finger size
+              </span>
             </div>
           )}
 
