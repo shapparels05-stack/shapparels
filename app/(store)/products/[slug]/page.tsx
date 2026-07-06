@@ -11,6 +11,8 @@ import { bucketDiscountPercent, activeCompareAtPrice } from "@/lib/pricing";
 import { ProductCarousel } from "@/components/products/product-carousel";
 import { getSpecialOffersForProduct } from "@/lib/db/queries/special-offers";
 import { SpecialOfferCard } from "@/components/special-offers/special-offer-card";
+import { getCategories } from "@/lib/db/queries/categories";
+import { ProductFeatures, type ProductFeatureType } from "@/components/products/product-features";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
 import { BreadcrumbJsonLd } from "@/components/shared/breadcrumb-jsonld";
@@ -51,7 +53,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const [categoryGroups, ratingSummary, bundles] = await Promise.all([
+  const [categoryGroups, ratingSummary, bundles, allCategories] = await Promise.all([
     getProductsGroupedByCategory({
       perCategory: 12,
       excludeProductId: product.id,
@@ -59,7 +61,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }),
     getProductRatingSummary(product.id),
     getSpecialOffersForProduct(product.id),
+    getCategories(),
   ]);
+
+  // The feature row differs for jewelry vs bags — resolve the top-level category.
+  const catById = new Map(allCategories.map((c) => [c.id, c]));
+  const featureType: ProductFeatureType | null = (() => {
+    let cur = product.categoryId ? catById.get(product.categoryId) : undefined;
+    let guard = 0;
+    while (cur && guard++ < 12) {
+      if (!cur.parentId) {
+        const slug = (cur.slug || "").toLowerCase();
+        if (slug === "jewelry" || slug === "jewellery") return "jewelry";
+        if (slug === "bags" || slug === "bag") return "bags";
+        return null;
+      }
+      cur = catById.get(cur.parentId);
+    }
+    return null;
+  })();
 
   const breadcrumbItems = [
     { label: "Shop", href: "/products" },
@@ -123,6 +143,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </a>
               {product.shortDescription && (
                 <p className="mt-3 text-muted-foreground">{product.shortDescription}</p>
+              )}
+              {featureType && (
+                <ProductFeatures type={featureType} isResizeable={product.isResizeable} />
               )}
             </>
           }

@@ -37,7 +37,10 @@ export function SpecialOfferCard({ offer }: { offer: SpecialOfferListItem }) {
               Out of Stock
             </Badge>
           ) : offer.savings > 0 ? (
-            <Badge variant="destructive" className="text-xs font-semibold">
+            <Badge
+              variant="destructive"
+              className="hidden text-xs font-semibold sm:inline-flex"
+            >
               SAVE {CURRENCY_SYMBOL} {offer.savings.toLocaleString()}
             </Badge>
           ) : null}
