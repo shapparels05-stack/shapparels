@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { VariantSelector } from "@/components/products/variant-selector";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
@@ -71,6 +71,15 @@ export function ProductDetailClient({
     }
     return initial;
   });
+  // Inline "please select an option" prompt shown next to the option buttons.
+  const [showVariantError, setShowVariantError] = useState(false);
+  const variantRef = useRef<HTMLDivElement>(null);
+
+  const flagMissingSelection = () => {
+    setShowVariantError(true);
+    // Scroll the selector into view (e.g. when triggered from the sticky bar).
+    variantRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   // Fire ViewContent once per product view.
   useEffect(() => {
@@ -82,6 +91,7 @@ export function ProductDetailClient({
   }, [product.id, product.name, product.basePrice]);
 
   const handleOptionChange = (optionTypeId: string, valueId: string) => {
+    setShowVariantError(false);
     setSelectedOptions((prev) => {
       // Toggle off if already selected
       if (prev[optionTypeId] === valueId) {
@@ -244,12 +254,19 @@ export function ProductDetailClient({
             </div>
           )}
 
-          <VariantSelector
-            optionTypes={optionTypes}
-            variants={variants}
-            selectedOptions={selectedOptions}
-            onOptionChange={handleOptionChange}
-          />
+          <div ref={variantRef} className="scroll-mt-24 space-y-2">
+            <VariantSelector
+              optionTypes={optionTypes}
+              variants={variants}
+              selectedOptions={selectedOptions}
+              onOptionChange={handleOptionChange}
+            />
+            {showVariantError && needsVariantSelection && (
+              <p className="text-sm font-medium text-destructive">
+                ⚠ Please select {missingOptionsLabel ?? "an option"} first.
+              </p>
+            )}
+          </div>
 
           <AddToCartButton
             product={{
@@ -272,7 +289,7 @@ export function ProductDetailClient({
                 : undefined
             }
             needsVariantSelection={needsVariantSelection}
-            missingOptionsLabel={missingOptionsLabel}
+            onMissingSelection={flagMissingSelection}
           />
         </div>
 

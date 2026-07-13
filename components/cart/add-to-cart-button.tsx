@@ -23,7 +23,8 @@ interface AddToCartButtonProps {
   variantLabel: string | null;
   stock?: number;
   needsVariantSelection?: boolean;
-  missingOptionsLabel?: string | null;
+  /** Called when the user tries to buy without picking a required option. */
+  onMissingSelection?: () => void;
 }
 
 export function AddToCartButton({
@@ -32,7 +33,7 @@ export function AddToCartButton({
   variantLabel,
   stock,
   needsVariantSelection = false,
-  missingOptionsLabel,
+  onMissingSelection,
 }: AddToCartButtonProps) {
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
@@ -65,13 +66,10 @@ export function AddToCartButton({
     return () => observer.disconnect();
   }, []);
 
-  const variantErrorMessage = missingOptionsLabel
-    ? `Please select ${missingOptionsLabel} first`
-    : "Please select all options first";
-
   const ensureSelection = () => {
     if (needsVariantSelection) {
-      toast.error(variantErrorMessage);
+      // Surface the error inline next to the option buttons (handled by parent).
+      onMissingSelection?.();
       return false;
     }
     return true;

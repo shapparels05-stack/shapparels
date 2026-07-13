@@ -182,6 +182,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </Tabs>
       </div>
 
+      {/* Available in a bundle — cross-sell the special offers this product is in */}
+      {bundles.length > 0 && (
+        <div className="mt-16">
+          <h2 className="font-serif text-2xl font-bold">Grab It in a Bundle &amp; Save</h2>
+          <p className="mt-1 text-muted-foreground">
+            This item is part of a special offer — get more for less.
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {bundles.map((offer) => (
+              <SpecialOfferCard key={offer.id} offer={offer} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* You May Also Like — a few items per category */}
       {categoryGroups.length > 0 && (
         <div className="mt-16">
@@ -200,21 +215,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </div>
                 <ProductCarousel products={group.products} />
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Available in a bundle — cross-sell the special offers this product is in */}
-      {bundles.length > 0 && (
-        <div className="mt-16">
-          <h2 className="font-serif text-2xl font-bold">Grab It in a Bundle &amp; Save</h2>
-          <p className="mt-1 text-muted-foreground">
-            This item is part of a special offer — get more for less.
-          </p>
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-            {bundles.map((offer) => (
-              <SpecialOfferCard key={offer.id} offer={offer} />
             ))}
           </div>
         </div>

@@ -75,7 +75,11 @@ async function loadOfferProducts(offerId: string): Promise<OfferProduct[]> {
       .innerJoin(productOptionTypes, eq(productOptionTypes.id, productOptionValues.optionTypeId))
       .where(inArray(productOptionTypes.productId, productIds)),
     db
-      .select({ productId: productImages.productId, url: productImages.url })
+      .select({
+        productId: productImages.productId,
+        url: productImages.url,
+        optionValue: productImages.optionValue,
+      })
       .from(productImages)
       .where(inArray(productImages.productId, productIds))
       .orderBy(asc(productImages.sortOrder)),
@@ -83,16 +87,35 @@ async function loadOfferProducts(offerId: string): Promise<OfferProduct[]> {
 
   const variantMap = new Map(variantRows.map((v) => [v.id, v]));
   const valueMap = new Map(valueRows.map((v) => [v.id, v.value]));
-  const imagesByProduct = new Map<string, string[]>();
+  const imagesByProduct = new Map<string, { url: string; optionValue: string | null }[]>();
   for (const im of imgs) {
     const list = imagesByProduct.get(im.productId) ?? [];
-    list.push(im.url);
+    list.push({ url: im.url, optionValue: im.optionValue });
     imagesByProduct.set(im.productId, list);
   }
 
+  const norm = (s: string) => s.trim().toLowerCase();
+
   return rows.map((r) => {
     const v = r.variantId ? variantMap.get(r.variantId) : null;
-    const images = imagesByProduct.get(r.productId) ?? [];
+    const allImages = imagesByProduct.get(r.productId) ?? [];
+
+    // When a specific variant is chosen, show only that colour's images
+    // (images tagged with the variant's option value) plus untagged/general
+    // ones. Fall back to all images if none are tagged for the colour.
+    let selected = allImages;
+    if (v) {
+      const labels = new Set((v.optionValueIds ?? []).map((id) => valueMap.get(id)).filter(Boolean).map((l) => norm(l as string)));
+      if (labels.size > 0) {
+        const tagged = allImages.filter((i) => i.optionValue && labels.has(norm(i.optionValue)));
+        if (tagged.length > 0) {
+          const general = allImages.filter((i) => !i.optionValue);
+          selected = [...tagged, ...general];
+        }
+      }
+    }
+
+    const images = selected.map((i) => i.url);
     const stock = v ? v.stock : r.productStock;
     return {
       id: r.productId,
