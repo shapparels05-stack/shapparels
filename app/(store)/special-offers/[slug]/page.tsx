@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getSpecialOfferBySlug } from "@/lib/db/queries/special-offers";
+import { getProductsGroupedByCategory } from "@/lib/db/queries/products";
+import { ProductCarousel } from "@/components/products/product-carousel";
 import { ProductImages } from "@/components/products/product-images";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { OfferCountdown } from "@/components/products/offer-countdown";
@@ -35,6 +37,13 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const offer = await getSpecialOfferBySlug(slug);
   if (!offer) notFound();
+
+  // "You May Also Like" — prioritise the category of the first bundled product.
+  const categoryGroups = await getProductsGroupedByCategory({
+    perCategory: 12,
+    prioritizeCategoryId: undefined,
+    excludeProductId: offer.products[0]?.id,
+  });
 
   const price = parseFloat(offer.price);
   const soldOut = !offer.available;
@@ -148,6 +157,29 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
           <ProductTrustBadges />
         </div>
       </div>
+
+      {/* You May Also Like — a few items per category */}
+      {categoryGroups.length > 0 && (
+        <div className="mt-16">
+          <h2 className="font-serif text-2xl font-bold">You May Also Like</h2>
+          <div className="mt-6 space-y-10">
+            {categoryGroups.map((group) => (
+              <div key={group.category.id}>
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-serif text-lg font-semibold">{group.category.name}</h3>
+                  <Link
+                    href={`/category/${group.category.slug}`}
+                    className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+                <ProductCarousel products={group.products} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
