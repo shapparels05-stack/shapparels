@@ -12,6 +12,7 @@ import { ProductCarousel } from "@/components/products/product-carousel";
 import { getSpecialOffersForProduct } from "@/lib/db/queries/special-offers";
 import { SpecialOfferCard } from "@/components/special-offers/special-offer-card";
 import { getCategories } from "@/lib/db/queries/categories";
+import { getSiteSettings } from "@/lib/db/queries/settings";
 import { ProductFeatures, type ProductFeatureType } from "@/components/products/product-features";
 import { ProductDetailClient } from "./product-detail-client";
 import { ProductJsonLd } from "@/components/shared/product-jsonld";
@@ -63,6 +64,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     getSpecialOffersForProduct(product.id),
     getCategories(),
   ]);
+
+  const settings = await getSiteSettings();
+  const lowStockThreshold = parseInt(settings.low_stock_threshold || "10", 10) || 10;
 
   // The feature row differs for jewelry vs bags — resolve the top-level category.
   const catById = new Map(allCategories.map((c) => [c.id, c]));
@@ -120,9 +124,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             saleEndsAt: product.saleEndsAt,
             saleRepeatHours: product.saleRepeatHours,
             isResizeable: product.isResizeable,
+            showLowStock: product.showLowStock,
             stock: product.stock,
             image: product.images[0]?.url || "",
           }}
+          lowStockThreshold={lowStockThreshold}
           optionTypes={product.optionTypes}
           variants={product.variants}
           images={product.images}

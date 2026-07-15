@@ -42,6 +42,7 @@ interface ProductDetailClientProps {
     saleEndsAt?: Date | string | null;
     saleRepeatHours?: number | null;
     isResizeable?: boolean;
+    showLowStock?: boolean;
     stock: number;
     image: string;
   };
@@ -50,6 +51,7 @@ interface ProductDetailClientProps {
   images: ProductImageItem[];
   discountPercent?: number;
   code?: string | null;
+  lowStockThreshold?: number;
   infoHeader: React.ReactNode;
 }
 
@@ -60,6 +62,7 @@ export function ProductDetailClient({
   images,
   discountPercent,
   code,
+  lowStockThreshold = 10,
   infoHeader,
 }: ProductDetailClientProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
@@ -151,9 +154,11 @@ export function ProductDetailClient({
     : optionTypes.length === 0
     ? product.stock
     : null;
-  const LOW_STOCK_THRESHOLD = 10;
   const showLowStock =
-    effectiveStock !== null && effectiveStock > 0 && effectiveStock <= LOW_STOCK_THRESHOLD;
+    product.showLowStock === true &&
+    effectiveStock !== null &&
+    effectiveStock > 0 &&
+    effectiveStock <= lowStockThreshold;
 
   // Whole product is sold out: no-option product at 0, or every variant at 0.
   const productSoldOut =

@@ -110,6 +110,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   // Category + "resizeable" (only offered for rings).
   const [categoryId, setCategoryId] = useState<string>(initialData?.categoryId || "");
   const [isResizeable, setIsResizeable] = useState<boolean>(!!initialData?.isResizeable);
+  const [showLowStock, setShowLowStock] = useState<boolean>(initialData?.showLowStock ?? false);
   const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   // True when the selected category is "Ring" or a descendant of it (not "Ear Ring").
   const isRingCategory = (id: string): boolean => {
@@ -227,6 +228,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
           : parseInt(formData.get("stock") as string) || 0,
       categoryId: categoryId || null,
       isResizeable: ringSelected ? isResizeable : false,
+      showLowStock,
       metaTitle: formData.get("metaTitle") as string,
       metaDescription: formData.get("metaDescription") as string,
       isFeatured: formData.get("isFeatured") === "on",
@@ -396,6 +398,19 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
                 ? "Auto-calculated as the sum of all variant stock."
                 : "Used when no variants are added"}
             </p>
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-3">
+            <Checkbox
+              id="showLowStock"
+              checked={showLowStock}
+              onCheckedChange={(c) => setShowLowStock(c === true)}
+            />
+            <Label htmlFor="showLowStock">
+              Show &quot;Hurry, only X left&quot; low-stock banner{" "}
+              <span className="text-xs font-normal text-muted-foreground">
+                — appears once stock hits the global threshold (Settings). Uncheck to never show it.
+              </span>
+            </Label>
           </div>
           <div className="space-y-2 sm:col-span-3">
             <Label htmlFor="saleEndsAt">Limited-Time Offer Ends</Label>

@@ -26,6 +26,7 @@ export const productCreateSchema = z.object({
   bestSellerVariantId: z.string().uuid().optional().nullable(),
   isActive: z.boolean().default(true),
   isResizeable: z.boolean().default(false),
+  showLowStock: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
 });
 

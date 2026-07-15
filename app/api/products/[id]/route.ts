@@ -73,6 +73,7 @@ export async function PUT(
         bestSellerVariantId: body.bestSellerVariantId || null,
         isActive: body.isActive,
         isResizeable: Boolean(body.isResizeable),
+        showLowStock: Boolean(body.showLowStock),
         tags: body.tags,
       })
       .where(eq(products.id, id))
