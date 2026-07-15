@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getActiveSpecialOffers } from "@/lib/db/queries/special-offers";
+import { getProductsGroupedByCategory } from "@/lib/db/queries/products";
 import { SpecialOfferCard } from "@/components/special-offers/special-offer-card";
+import { ProductCarousel } from "@/components/products/product-carousel";
 import { SITE_URL } from "@/lib/constants";
 
 export const revalidate = 300;
@@ -13,7 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default async function SpecialOffersPage() {
-  const offers = await getActiveSpecialOffers();
+  const [offers, categoryGroups] = await Promise.all([
+    getActiveSpecialOffers(),
+    getProductsGroupedByCategory({ perCategory: 12 }),
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -36,6 +42,29 @@ export default async function SpecialOffersPage() {
           {offers.map((offer) => (
             <SpecialOfferCard key={offer.id} offer={offer} />
           ))}
+        </div>
+      )}
+
+      {/* You May Also Like — a few items per category */}
+      {categoryGroups.length > 0 && (
+        <div className="mt-16">
+          <h2 className="font-serif text-2xl font-bold">You May Also Like</h2>
+          <div className="mt-6 space-y-10">
+            {categoryGroups.map((group) => (
+              <div key={group.category.id}>
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-serif text-lg font-semibold">{group.category.name}</h3>
+                  <Link
+                    href={`/category/${group.category.slug}`}
+                    className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+                <ProductCarousel products={group.products} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
