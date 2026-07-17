@@ -17,6 +17,7 @@ export type CartItem = {
   isBundle?: boolean;
   offerId?: string;
   bundleProductIds?: string[];
+  freeShipping?: boolean;
 };
 
 type CartStore = {

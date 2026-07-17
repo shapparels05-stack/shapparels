@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         images: data.images,
         saleEndsAt: data.saleEndsAt ?? null,
         saleRepeatHours: data.saleRepeatHours ?? null,
+        freeShipping: data.freeShipping,
         isActive: data.isActive,
         sortOrder: data.sortOrder,
       })

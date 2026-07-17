@@ -3,13 +3,15 @@
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/stores/cart-store";
-import { CURRENCY_SYMBOL, SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { CURRENCY_SYMBOL, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { computeShipping } from "@/lib/shipping";
 import { Truck } from "lucide-react";
 
 export function OrderSummary() {
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore((s) => s.getTotal());
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const freeShipping = items.some((i) => i.freeShipping);
+  const shipping = computeShipping(subtotal, freeShipping);
   const total = subtotal + shipping;
 
   return (
@@ -79,11 +81,18 @@ export function OrderSummary() {
         <span>{CURRENCY_SYMBOL} {total.toLocaleString()}</span>
       </div>
 
-      {subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
-        <div className="mt-4 flex items-center gap-2 rounded-md bg-primary/5 p-3 text-xs text-muted-foreground">
-          <Truck className="h-4 w-4 text-primary shrink-0" />
-          <span>Add {CURRENCY_SYMBOL} {(FREE_SHIPPING_THRESHOLD - subtotal).toLocaleString()} more for free shipping!</span>
+      {freeShipping ? (
+        <div className="mt-4 flex items-center gap-2 rounded-md bg-primary/10 p-3 text-xs font-medium text-primary">
+          <Truck className="h-4 w-4 shrink-0" />
+          <span>Free shipping applied on this order 🎉</span>
         </div>
+      ) : (
+        subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
+          <div className="mt-4 flex items-center gap-2 rounded-md bg-primary/5 p-3 text-xs text-muted-foreground">
+            <Truck className="h-4 w-4 text-primary shrink-0" />
+            <span>Add {CURRENCY_SYMBOL} {(FREE_SHIPPING_THRESHOLD - subtotal).toLocaleString()} more for free shipping!</span>
+          </div>
+        )
       )}
     </div>
   );

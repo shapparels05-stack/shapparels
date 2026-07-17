@@ -16,6 +16,8 @@ export const specialOffers = pgTable("special_offers", {
   images: jsonb("images").$type<string[]>().default([]),
   saleEndsAt: timestamp("sale_ends_at", { withTimezone: true }),
   saleRepeatHours: integer("sale_repeat_hours"),
+  // When true, this bundle ships free (no shipping added to the order total).
+  freeShipping: boolean("free_shipping").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

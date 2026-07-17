@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, WHATSAPP_NUMBER, CURRENCY_SYMBOL } from "@/lib/constants";
+import { computeShipping } from "@/lib/shipping";
 import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,7 +19,8 @@ export function CheckoutForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const subtotal = getTotal();
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const freeShipping = items.some((i) => i.freeShipping);
+  const shipping = computeShipping(subtotal, freeShipping);
   const total = subtotal + shipping;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

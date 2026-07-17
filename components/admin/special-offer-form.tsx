@@ -55,6 +55,7 @@ export function SpecialOfferForm({ products, initialData }: SpecialOfferFormProp
   const [saleRepeatHours, setSaleRepeatHours] = useState<string>(
     initialData?.saleRepeatHours?.toString() || "24"
   );
+  const [freeShipping, setFreeShipping] = useState<boolean>(!!initialData?.freeShipping);
 
   const productMap = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
 
@@ -99,6 +100,7 @@ export function SpecialOfferForm({ products, initialData }: SpecialOfferFormProp
       images,
       saleEndsAt: (formData.get("saleEndsAt") as string) || null,
       saleRepeatHours: saleRepeat ? parseInt(saleRepeatHours) || null : null,
+      freeShipping,
       isActive: formData.get("isActive") === "on",
       sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
       items: productIds.map((pid) => ({ productId: pid, variantId: chosenVariantId(pid) })),
@@ -297,6 +299,19 @@ export function SpecialOfferForm({ products, initialData }: SpecialOfferFormProp
                 <span className="text-sm text-muted-foreground">hours</span>
               </div>
             )}
+          </div>
+          <div className="flex items-center gap-2 pt-2">
+            <Checkbox
+              id="freeShipping"
+              checked={freeShipping}
+              onCheckedChange={(c) => setFreeShipping(c === true)}
+            />
+            <Label htmlFor="freeShipping">
+              Free shipping{" "}
+              <span className="text-xs font-normal text-muted-foreground">
+                — shows a &quot;Free Shipping&quot; badge and removes the shipping fee from the order.
+              </span>
+            </Label>
           </div>
           <div className="flex items-center gap-2 pt-2">
             <Checkbox id="isActive" name="isActive" defaultChecked={initialData?.isActive ?? true} />

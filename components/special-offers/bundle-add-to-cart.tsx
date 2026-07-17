@@ -18,6 +18,7 @@ interface BundleAddToCartProps {
     originalPrice: number;
     image: string;
     available: boolean;
+    freeShipping?: boolean;
   };
 }
 
@@ -42,6 +43,7 @@ export function BundleAddToCart({ offer }: BundleAddToCartProps) {
       variantLabel: null,
       isBundle: true,
       offerId: offer.id,
+      freeShipping: offer.freeShipping,
       quantity,
     });
     trackAddToCart({ id: offer.id, name: label, price: offer.price, quantity });

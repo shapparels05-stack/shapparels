@@ -11,6 +11,7 @@ import { OfferCountdown } from "@/components/products/offer-countdown";
 import { BundleAddToCart } from "@/components/special-offers/bundle-add-to-cart";
 import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { Badge } from "@/components/ui/badge";
+import { Truck } from "lucide-react";
 import { isLimitedOfferActive } from "@/lib/pricing";
 import { CURRENCY_SYMBOL, SITE_URL } from "@/lib/constants";
 
@@ -92,6 +93,13 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
               )}
             </div>
 
+            {offer.freeShipping && (
+              <div className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">
+                <Truck className="h-5 w-5 shrink-0" />
+                🎉 FREE Shipping on this bundle — no delivery charges!
+              </div>
+            )}
+
             {timerActive && offer.saleEndsAt && (
               <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
                 <p className="mb-2 text-sm font-semibold text-destructive">
@@ -150,6 +158,7 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
                 originalPrice: offer.originalPrice,
                 image: offer.gallery[0] || "",
                 available: offer.available,
+                freeShipping: offer.freeShipping,
               }}
             />
           </div>

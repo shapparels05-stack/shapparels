@@ -15,6 +15,7 @@ export const specialOfferSchema = z.object({
     (v) => (v === "" || v == null ? null : v),
     z.coerce.number().int().positive().nullable().optional()
   ),
+  freeShipping: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().int().default(0),
   items: z

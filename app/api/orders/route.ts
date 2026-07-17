@@ -6,7 +6,8 @@ import { products, productVariants, specialOffers, specialOfferItems } from "@/l
 import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
-import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
+import { CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
+import { computeShipping } from "@/lib/shipping";
 import { sendCapiEvents, capiContextFromRequest } from "@/lib/meta-capi";
 import { sendOrderPlacedEmails } from "@/lib/email";
 import { sendOrderPlacedWhatsApp } from "@/lib/whatsapp";
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Verify prices from DB and build order items
     let subtotal = 0;
+    let hasFreeShipping = false;
     const orderItems = [];
 
     for (const item of items) {
@@ -70,6 +72,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
+        if (offer.freeShipping) hasFreeShipping = true;
 
         const comps = await db
           .select({
@@ -244,7 +247,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+    const shippingCost = computeShipping(subtotal, hasFreeShipping);
     const total = subtotal + shippingCost;
     const orderNumber = generateOrderNumber();
 
