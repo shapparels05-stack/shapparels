@@ -18,6 +18,7 @@ interface AddToCartButtonProps {
     image: string;
     price: number;
     compareAtPrice: number | null;
+    freeShipping?: boolean;
   };
   variantId: string | null;
   variantLabel: string | null;
@@ -93,6 +94,7 @@ export function AddToCartButton({
       variantLabel,
       quantity,
       maxStock: stock,
+      freeShipping: product.freeShipping,
     });
     trackAddToCart({
       id: product.id,

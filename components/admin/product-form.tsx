@@ -111,6 +111,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
   const [categoryId, setCategoryId] = useState<string>(initialData?.categoryId || "");
   const [isResizeable, setIsResizeable] = useState<boolean>(!!initialData?.isResizeable);
   const [showLowStock, setShowLowStock] = useState<boolean>(initialData?.showLowStock ?? false);
+  const [freeShipping, setFreeShipping] = useState<boolean>(initialData?.freeShipping ?? false);
   const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   // True when the selected category is "Ring" or a descendant of it (not "Ear Ring").
   const isRingCategory = (id: string): boolean => {
@@ -229,6 +230,7 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
       categoryId: categoryId || null,
       isResizeable: ringSelected ? isResizeable : false,
       showLowStock,
+      freeShipping,
       metaTitle: formData.get("metaTitle") as string,
       metaDescription: formData.get("metaDescription") as string,
       isFeatured: formData.get("isFeatured") === "on",
@@ -409,6 +411,19 @@ export function ProductForm({ categories, initialData }: ProductFormProps) {
               Show &quot;Hurry, only X left&quot; low-stock banner{" "}
               <span className="text-xs font-normal text-muted-foreground">
                 — appears once stock hits the global threshold (Settings). Uncheck to never show it.
+              </span>
+            </Label>
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-3">
+            <Checkbox
+              id="freeShipping"
+              checked={freeShipping}
+              onCheckedChange={(c) => setFreeShipping(c === true)}
+            />
+            <Label htmlFor="freeShipping">
+              Free delivery{" "}
+              <span className="text-xs font-normal text-muted-foreground">
+                — no shipping fee when this product is in the cart.
               </span>
             </Label>
           </div>

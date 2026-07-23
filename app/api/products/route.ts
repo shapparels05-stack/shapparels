@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
         isActive: parsed.isActive,
         isResizeable: parsed.isResizeable,
         showLowStock: parsed.showLowStock,
+        freeShipping: parsed.freeShipping,
         tags: parsed.tags,
       })
       .returning();

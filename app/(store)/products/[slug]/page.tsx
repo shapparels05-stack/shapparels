@@ -125,6 +125,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             saleRepeatHours: product.saleRepeatHours,
             isResizeable: product.isResizeable,
             showLowStock: product.showLowStock,
+            freeShipping: product.freeShipping,
             stock: product.stock,
             image: product.images[0]?.url || "",
           }}

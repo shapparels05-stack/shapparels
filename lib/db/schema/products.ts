@@ -32,6 +32,8 @@ export const products = pgTable("products", {
   // When true, show the "Hurry, only X left" banner once stock hits the global
   // low-stock threshold. When false, the banner never shows for this product.
   showLowStock: boolean("show_low_stock").notNull().default(false),
+  // When true, this product ships free (no shipping added to the order).
+  freeShipping: boolean("free_shipping").notNull().default(false),
   tags: jsonb("tags").$type<string[]>().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

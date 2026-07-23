@@ -193,10 +193,12 @@ export async function POST(request: NextRequest) {
         }
         verifiedPrice = parseFloat(updated.price);
         // Keep the parent product's total stock in sync with its variants.
-        await db
+        const [prod] = await db
           .update(products)
           .set({ stock: sql`${products.stock} - ${item.quantity}` })
-          .where(eq(products.id, updated.productId));
+          .where(eq(products.id, updated.productId))
+          .returning();
+        if (prod?.freeShipping) hasFreeShipping = true;
       } else {
         // Atomic: deduct stock only if enough available
         const [updated] = await db
@@ -229,6 +231,7 @@ export async function POST(request: NextRequest) {
           );
         }
         verifiedPrice = parseFloat(updated.basePrice);
+        if (updated.freeShipping) hasFreeShipping = true;
       }
 
       const lineTotal = verifiedPrice * item.quantity;

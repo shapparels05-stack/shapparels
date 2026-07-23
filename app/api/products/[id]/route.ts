@@ -74,6 +74,7 @@ export async function PUT(
         isActive: body.isActive,
         isResizeable: Boolean(body.isResizeable),
         showLowStock: Boolean(body.showLowStock),
+        freeShipping: Boolean(body.freeShipping),
         tags: body.tags,
       })
       .where(eq(products.id, id))

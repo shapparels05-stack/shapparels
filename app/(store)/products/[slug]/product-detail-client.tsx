@@ -43,6 +43,7 @@ interface ProductDetailClientProps {
     saleRepeatHours?: number | null;
     isResizeable?: boolean;
     showLowStock?: boolean;
+    freeShipping?: boolean;
     stock: number;
     image: string;
   };
@@ -237,6 +238,12 @@ export function ProductDetailClient({
             </div>
           )}
 
+          {product.freeShipping && (
+            <div className="flex w-fit items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
+              🚚 Free delivery on this item
+            </div>
+          )}
+
           {limitedOffer && product.saleEndsAt && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
               <p className="mb-2 text-sm font-semibold text-destructive">
@@ -281,6 +288,7 @@ export function ProductDetailClient({
               image: product.image,
               price: displayPrice,
               compareAtPrice: displayCompareAt,
+              freeShipping: product.freeShipping,
             }}
             variantId={selectedVariant?.id || null}
             variantLabel={variantLabel}
