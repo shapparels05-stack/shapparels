@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { normalizeSlug } from "@/lib/slug";
+import { knownDbError } from "@/lib/api-errors";
 
 // Refresh the static homepage + listing and the product's own (ISR-cached)
 // detail page after a change, so edits show up immediately.
@@ -152,6 +153,10 @@ export async function PUT(
     revalidateProduct(updated.slug);
     return NextResponse.json(updated);
   } catch (error) {
+    const known = knownDbError(error);
+    if (known) {
+      return NextResponse.json({ error: known.message }, { status: known.status });
+    }
     console.error("Product update error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

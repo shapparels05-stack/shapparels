@@ -5,8 +5,10 @@ import { products, productImages, productOptionTypes, productOptionValues, produ
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { ZodError } from "zod";
 import { productCreateSchema } from "@/lib/validators/product";
 import { normalizeSlug } from "@/lib/slug";
+import { knownDbError, formatZodError } from "@/lib/api-errors";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -125,9 +127,14 @@ export async function POST(request: NextRequest) {
     if (product.slug) revalidatePath(`/products/${product.slug}`);
 
     return NextResponse.json(product, { status: 201 });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      // zod v4: issues live on `.issues` (`.errors` no longer exists).
+      return NextResponse.json({ error: formatZodError(error) }, { status: 400 });
+    }
+    const known = knownDbError(error);
+    if (known) {
+      return NextResponse.json({ error: known.message }, { status: known.status });
     }
     console.error("Product create error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
