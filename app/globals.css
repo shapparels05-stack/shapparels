@@ -134,3 +134,11 @@
     font-family: var(--font-playfair), serif;
   }
 }
+/* Attention flicker for promo badges (free gift / free delivery). */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-flicker {
+  animation: flicker 1.3s ease-in-out infinite;
+}
