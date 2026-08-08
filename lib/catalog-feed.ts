@@ -205,7 +205,9 @@ export async function buildMetaCatalogXml(): Promise<string> {
           const { price, salePrice } = priceFields(v.price, v.compareAtPrice ?? p.compareAtPrice);
           items.push({
             id: v.sku?.trim() || `${p.id}_${v.id}`,
-            itemGroupId: p.code?.trim() || p.id,
+            // Group key = product id, matching the content_ids our Pixel/CAPI
+            // report, so dynamic (retargeting) ads can link viewed products.
+            itemGroupId: p.id,
             title: `${[p.code?.trim(), p.name.trim()].filter(Boolean).join(" ")}${label ? " - " + label : ""}`,
             description,
             link,
@@ -226,7 +228,7 @@ export async function buildMetaCatalogXml(): Promise<string> {
         if (!imageLink) continue;
         const { price, salePrice } = priceFields(p.basePrice, p.compareAtPrice);
         items.push({
-          id: p.code?.trim() || p.id,
+          id: p.id, // matches the content_ids our Pixel/CAPI report
           title: `${[p.code?.trim(), p.name.trim()].filter(Boolean).join(" ")}`,
           description,
           link,
