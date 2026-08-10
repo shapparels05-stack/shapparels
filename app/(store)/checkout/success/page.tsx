@@ -25,11 +25,16 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
         <PurchaseTracker
           orderNumber={order.orderNumber}
           value={parseFloat(order.total)}
-          contents={order.items.map((item) => ({
-            id: item.productId ?? "",
-            quantity: item.quantity,
-            price: parseFloat(item.price),
-          }))}
+          contents={order.items.flatMap((item) =>
+            item.productId
+              ? [{ id: item.productId, quantity: item.quantity, price: parseFloat(item.price) }]
+              : // Bundle line: expand into its component product ids (catalog-matchable).
+                (item.bundleProductIds ?? []).map((c) => ({
+                  id: c.productId,
+                  quantity: item.quantity,
+                  price: 0,
+                }))
+          )}
         />
       )}
 

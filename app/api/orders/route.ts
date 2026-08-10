@@ -275,6 +275,20 @@ export async function POST(request: NextRequest) {
     // so Meta deduplicates the two. Hashed customer data gives a strong match.
     // Fire-and-forget so a CAPI hiccup never blocks the order response.
     const [firstName, ...rest] = parsed.data.customerName.trim().split(/\s+/);
+
+    // Product ids for Meta matching: real products only; bundle lines expand
+    // into their component products (bundle/offer ids aren't in the catalog).
+    const purchaseContents: { id: string; quantity: number; item_price: number }[] = [];
+    for (const i of orderItems) {
+      if (i.productId) {
+        purchaseContents.push({ id: i.productId, quantity: i.quantity, item_price: Number(i.price) });
+      } else if (i.bundleProductIds) {
+        for (const c of i.bundleProductIds) {
+          purchaseContents.push({ id: c.productId, quantity: i.quantity, item_price: 0 });
+        }
+      }
+    }
+
     sendCapiEvents([
       {
         eventName: "Purchase",
@@ -293,12 +307,10 @@ export async function POST(request: NextRequest) {
           currency: CURRENCY,
           value: Number(total.toFixed(2)),
           content_type: "product",
-          contents: orderItems.map((i) => ({
-            id: i.productId,
-            quantity: i.quantity,
-            item_price: Number(i.price),
-          })),
-          content_ids: orderItems.map((i) => i.productId),
+          // Report real product ids only (matching the catalog). Bundle lines
+          // have no single product id, so expand them into their components.
+          contents: purchaseContents,
+          content_ids: purchaseContents.map((c) => c.id),
           num_items: orderItems.reduce((s, i) => s + i.quantity, 0),
         },
       },
