@@ -75,7 +75,23 @@ export default function RootLayout({
           id="meta-pixel-lib"
           src="https://connect.facebook.net/en_US/fbevents.js"
           strategy="lazyOnload"
+          crossOrigin="anonymous"
         />
+
+        {/* Surface real details of cross-origin "Script error." events: log them
+            and tag the Clarity session so the actual message/file/line is
+            visible instead of the generic masked error. */}
+        <Script id="js-error-reporter" strategy="afterInteractive">
+          {`
+            window.addEventListener('error', function(e){
+              try {
+                var detail = (e.message || 'error') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || 0) + ':' + (e.colno || 0);
+                console.error('[JS error]', detail, e.error && e.error.stack);
+                if (window.clarity) window.clarity('set', 'jsError', detail);
+              } catch(_) {}
+            });
+          `}
+        </Script>
         <noscript>
           <img
             height="1"
@@ -89,7 +105,7 @@ export default function RootLayout({
           {`
             (function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                t=l.createElement(r);t.async=1;t.crossOrigin="anonymous";t.src="https://www.clarity.ms/tag/"+i;
                 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
             })(window, document, "clarity", "script", "x4bvypwoqb");
           `}
