@@ -85,7 +85,13 @@ export default function RootLayout({
           {`
             window.addEventListener('error', function(e){
               try {
-                var detail = (e.message || 'error') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || 0) + ':' + (e.colno || 0);
+                var msg = e.message || '';
+                // Ignore benign in-app-browser / third-party noise we can't control:
+                // FB/IG WebView native-bridge teardown, masked cross-origin errors,
+                // and the harmless ResizeObserver loop notice.
+                if (/Java object is gone|postMessage|ResizeObserver loop/i.test(msg)) return;
+                if (msg === 'Script error.' && !e.filename) return;
+                var detail = msg + ' @ ' + (e.filename || '?') + ':' + (e.lineno || 0) + ':' + (e.colno || 0);
                 console.error('[JS error]', detail, e.error && e.error.stack);
                 if (window.clarity) window.clarity('set', 'jsError', detail);
               } catch(_) {}
