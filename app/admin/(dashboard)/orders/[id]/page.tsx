@@ -27,8 +27,10 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
         <div>
           <h1 className="font-serif text-3xl font-bold">{order.orderNumber}</h1>
           <p className="text-muted-foreground">
-            {new Date(order.createdAt).toLocaleDateString("en-PK", {
+            {new Date(order.createdAt).toLocaleString("en-PK", {
               dateStyle: "long",
+              timeStyle: "short",
+              timeZone: "Asia/Karachi",
             })}
           </p>
         </div>

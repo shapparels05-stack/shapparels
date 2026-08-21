@@ -52,7 +52,12 @@ export function OrderTable({ orders }: OrderTableProps) {
               {order.customerName} · {order.customerPhone}
             </p>
             <p className="text-xs text-muted-foreground">
-              {order.shippingCity} · {new Date(order.createdAt).toLocaleDateString()}
+              {order.shippingCity} ·{" "}
+              {new Date(order.createdAt).toLocaleString("en-PK", {
+                dateStyle: "medium",
+                timeStyle: "short",
+                timeZone: "Asia/Karachi",
+              })}
             </p>
           </div>
           <div className="text-right space-y-1">
