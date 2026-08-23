@@ -42,12 +42,17 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_PK",
     siteName: "SH Apparels",
+    url: SITE_URL,
     images: ["/hero-image.webp"],
   },
   robots: {
     index: true,
     follow: true,
   },
+  // Facebook App ID (set NEXT_PUBLIC_FB_APP_ID) — links the site to the FB app.
+  ...(process.env.NEXT_PUBLIC_FB_APP_ID
+    ? { other: { "fb:app_id": process.env.NEXT_PUBLIC_FB_APP_ID } }
+    : {}),
 };
 
 export default function RootLayout({
@@ -58,11 +63,26 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Pixel stub + init only — defines window.fbq and queues calls
-            (PageView etc.) immediately, with NO network/library cost. The heavy
-            fbevents.js library is loaded lazily below and drains the queue once
-            it arrives, so tracking is preserved but off the critical path. */}
-        <Script id="meta-pixel" strategy="afterInteractive">
+        {/* Capture the RAW fbclid from the landing URL and write _fbc in the exact
+            fb.1.<ts>.<fbclid> format (unmodified) BEFORE the pixel library loads,
+            so the Conversions API sends the click id exactly as it arrived. Only
+            sets it when absent (same domain scope) so it never fights the Pixel. */}
+        <Script id="fbclid-capture" strategy="beforeInteractive">
+          {`
+            try {
+              var fbclid = new URLSearchParams(location.search).get('fbclid');
+              if (fbclid && !/(^|;\\s*)_fbc=/.test(document.cookie)) {
+                var parts = location.hostname.split('.');
+                var domain = parts.length > 1 ? ';domain=.' + parts.slice(-2).join('.') : '';
+                document.cookie = '_fbc=fb.1.' + Date.now() + '.' + fbclid + ';path=/;max-age=7776000;samesite=lax' + domain;
+              }
+            } catch (e) {}
+          `}
+        </Script>
+        {/* Meta Pixel base code — loaded first (beforeInteractive) per Meta
+            guidance. Defines window.fbq + init with no network cost; the heavy
+            fbevents.js library loads lazily below and drains the queued events. */}
+        <Script id="meta-pixel" strategy="beforeInteractive">
           {`
             !function(f,b,e,v,n){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
             n.callMethod.apply(n,arguments):n.queue.push(arguments)};

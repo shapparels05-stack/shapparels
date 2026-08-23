@@ -31,6 +31,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       offer.description ||
       `${offer.name} — a bundle of ${offer.products.length} products for ${CURRENCY_SYMBOL} ${parseFloat(offer.price).toLocaleString()}. Cash on Delivery across Pakistan.`,
     alternates: { canonical: `${SITE_URL}/special-offers/${offer.slug}` },
+    openGraph: {
+      title: `${offer.name} (${offer.code})`,
+      url: `${SITE_URL}/special-offers/${offer.slug}`,
+      images: offer.images?.[0] ? [{ url: offer.images[0] }] : [],
+    },
   };
 }
 
