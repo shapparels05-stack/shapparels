@@ -91,11 +91,14 @@ export default function RootLayout({
             fbq('init', '1549926503362795');
           `}
         </Script>
+        {/* NOTE: no crossorigin attribute — Facebook's CDN does not send
+            Access-Control-Allow-Origin for fbevents.js, so a CORS-mode load is
+            downloaded but then REFUSED by the browser (net::ERR_FAILED) and the
+            pixel never runs. Load it the standard (non-CORS) way. */}
         <Script
           id="meta-pixel-lib"
           src="https://connect.facebook.net/en_US/fbevents.js"
           strategy="afterInteractive"
-          crossOrigin="anonymous"
         />
 
         {/* Surface real details of cross-origin "Script error." events: log them
