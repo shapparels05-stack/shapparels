@@ -94,7 +94,7 @@ export default function RootLayout({
         <Script
           id="meta-pixel-lib"
           src="https://connect.facebook.net/en_US/fbevents.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
           crossOrigin="anonymous"
         />
 
