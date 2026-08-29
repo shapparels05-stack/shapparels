@@ -33,7 +33,15 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
-  if (!product) return { title: "Product Not Found" };
+  if (!product) {
+    // Redirect old slugs HERE (not just in the page): generateMetadata resolves
+    // before the response starts streaming, so this yields a real HTTP 308.
+    // Redirecting only in the page body happens mid-stream and reaches bots
+    // as a 200, which Google won't treat as a permanent redirect.
+    const currentSlug = await getCurrentSlugForOldSlug(slug);
+    if (currentSlug) permanentRedirect(`/products/${currentSlug}`);
+    return { title: "Product Not Found" };
+  }
 
   const displayName = product.code ? `${product.code} - ${product.name}` : product.name;
 
