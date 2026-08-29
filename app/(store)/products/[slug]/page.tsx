@@ -1,8 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
-import { getProductBySlug, getProductsGroupedByCategory } from "@/lib/db/queries/products";
+import {
+  getProductBySlug,
+  getCurrentSlugForOldSlug,
+  getProductsGroupedByCategory,
+} from "@/lib/db/queries/products";
 import { getProductRatingSummary } from "@/lib/db/queries/reviews";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { RatingSummary } from "@/components/reviews/rating-summary";
@@ -52,7 +56,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
-  if (!product) notFound();
+  if (!product) {
+    // Renamed product? 301 the old URL to the current slug instead of 404ing.
+    const currentSlug = await getCurrentSlugForOldSlug(slug);
+    if (currentSlug) permanentRedirect(`/products/${currentSlug}`);
+    notFound();
+  }
 
   const [categoryGroups, ratingSummary, bundles, allCategories] = await Promise.all([
     getProductsGroupedByCategory({

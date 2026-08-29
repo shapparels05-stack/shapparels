@@ -7,6 +7,9 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   code: text("code"),
   slug: text("slug").notNull().unique(),
+  // Older slugs this product was previously reachable at. Requests to an old
+  // slug 301-redirect to the current one so renamed products never 404.
+  previousSlugs: jsonb("previous_slugs").$type<string[]>().default([]),
   description: text("description"),
   shortDescription: text("short_description"),
   basePrice: numeric("base_price", { precision: 10, scale: 2 }).notNull(),

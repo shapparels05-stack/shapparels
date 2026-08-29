@@ -401,6 +401,23 @@ export async function getProducts(options: GetProductsOptions = {}) {
   };
 }
 
+// When a slug isn't found, see if it's an OLD slug of a renamed product so the
+// page can 301-redirect to the current URL instead of 404ing (keeps previously
+// shared/ad links working after a rename).
+export async function getCurrentSlugForOldSlug(oldSlug: string) {
+  const [row] = await db
+    .select({ slug: products.slug })
+    .from(products)
+    .where(
+      and(
+        sql`${products.previousSlugs} @> ${JSON.stringify([oldSlug])}::jsonb`,
+        eq(products.isActive, true)
+      )
+    )
+    .limit(1);
+  return row?.slug ?? null;
+}
+
 export async function getProductBySlug(slug: string) {
   const [product] = await db
     .select()

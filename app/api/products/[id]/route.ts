@@ -52,6 +52,23 @@ export async function PUT(
       return NextResponse.json({ error: "A valid name or slug is required" }, { status: 400 });
     }
 
+    // If the slug is changing, keep the old one in previous_slugs so requests
+    // to the old URL 301-redirect instead of 404ing (protects existing links).
+    const [existing] = await db
+      .select({ slug: products.slug, previousSlugs: products.previousSlugs })
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
+    if (!existing) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const previousSlugs =
+      existing.slug !== safeSlug
+        ? Array.from(
+            new Set([...(existing.previousSlugs ?? []), existing.slug])
+          ).filter((s) => s !== safeSlug)
+        : undefined;
+
     // Update product
     const [updated] = await db
       .update(products)
@@ -59,6 +76,7 @@ export async function PUT(
         name: body.name,
         code: body.code ?? null,
         slug: safeSlug,
+        ...(previousSlugs ? { previousSlugs } : {}),
         description: body.description,
         shortDescription: body.shortDescription,
         basePrice: body.basePrice?.toString(),
@@ -151,6 +169,8 @@ export async function PUT(
     }
 
     revalidateProduct(updated.slug);
+    // Also refresh the old URL so its cached page becomes the redirect.
+    if (existing.slug !== updated.slug) revalidateProduct(existing.slug);
     return NextResponse.json(updated);
   } catch (error) {
     const known = knownDbError(error);
