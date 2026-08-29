@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
 import { computeShipping } from "@/lib/shipping";
-import { sendCapiEvents, capiContextFromRequest } from "@/lib/meta-capi";
+import { sendCapiEvents, capiContextFromRequest, buildMatchCookie } from "@/lib/meta-capi";
 import { sendOrderPlacedEmails } from "@/lib/email";
 import { sendOrderPlacedWhatsApp } from "@/lib/whatsapp";
 
@@ -346,10 +346,27 @@ export async function POST(request: NextRequest) {
       sendOrderPlacedWhatsApp(notificationOrder),
     ]);
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { orderNumber: order.orderNumber, orderId: order.id },
       { status: 201 }
     );
+    // Remember HASHED match keys so this browser's future ViewContent /
+    // AddToCart / InitiateCheckout mirrors carry PII match keys for Meta
+    // (fixes "missing user_data parameters"). Hashes only, never plaintext.
+    response.cookies.set("mua", buildMatchCookie({
+      email: parsed.data.customerEmail,
+      phone: parsed.data.customerPhone,
+      firstName: firstName || null,
+      lastName: rest.join(" ") || null,
+      city: parsed.data.shippingCity,
+    }), {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 180,
+    });
+    return response;
   } catch (error) {
     console.error("Order creation error:", error);
     return NextResponse.json(

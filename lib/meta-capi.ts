@@ -40,6 +40,12 @@ export interface CapiUserData {
   userAgent?: string | null;
   fbp?: string | null; // _fbp cookie
   fbc?: string | null; // _fbc cookie
+  // First-party anonymous visitor id (_shid cookie); hashed into external_id.
+  externalId?: string | null;
+  // Already-SHA256-hashed match keys recovered from the `mua` cookie (set at
+  // checkout) so browser-mirrored events from returning customers carry PII
+  // match keys without any plaintext ever being stored client-side.
+  prehashed?: Partial<Record<"em" | "ph" | "fn" | "ln" | "ct", string>> | null;
 }
 
 export interface CapiEvent {
@@ -63,12 +69,14 @@ export async function sendCapiEvents(events: CapiEvent[]): Promise<void> {
     const ln = hashField(u.lastName);
     const ct = hashField(u.city);
     const co = hashField(u.country);
-    if (em) user_data.em = [em];
-    if (ph) user_data.ph = [ph];
-    if (fn) user_data.fn = [fn];
-    if (ln) user_data.ln = [ln];
-    if (ct) user_data.ct = [ct];
+    const pre = u.prehashed || {};
+    if (em || pre.em) user_data.em = [em || pre.em];
+    if (ph || pre.ph) user_data.ph = [ph || pre.ph];
+    if (fn || pre.fn) user_data.fn = [fn || pre.fn];
+    if (ln || pre.ln) user_data.ln = [ln || pre.ln];
+    if (ct || pre.ct) user_data.ct = [ct || pre.ct];
     if (co) user_data.country = [co];
+    if (u.externalId) user_data.external_id = [sha256(u.externalId)];
     if (u.clientIp) user_data.client_ip_address = u.clientIp;
     if (u.userAgent) user_data.client_user_agent = u.userAgent;
     if (u.fbp) user_data.fbp = u.fbp;
@@ -117,10 +125,53 @@ export function capiContextFromRequest(req: Request): CapiUserData {
   );
   const forwarded = headers.get("x-forwarded-for");
   const clientIp = forwarded?.split(",")[0]?.trim() || headers.get("x-real-ip");
+
+  // Hashed match keys remembered from a previous checkout (see buildMatchCookie).
+  let prehashed: CapiUserData["prehashed"] = null;
+  if (cookies["mua"]) {
+    try {
+      const parsed = JSON.parse(Buffer.from(cookies["mua"], "base64url").toString("utf8"));
+      if (parsed && typeof parsed === "object") {
+        prehashed = {};
+        for (const k of ["em", "ph", "fn", "ln", "ct"] as const) {
+          if (typeof parsed[k] === "string" && /^[a-f0-9]{64}$/.test(parsed[k])) {
+            prehashed[k] = parsed[k];
+          }
+        }
+      }
+    } catch {}
+  }
+
   return {
     clientIp: clientIp || null,
     userAgent: headers.get("user-agent"),
     fbp: cookies["_fbp"] || null,
     fbc: cookies["_fbc"] || null,
+    externalId: cookies["_shid"] || null,
+    prehashed,
   };
+}
+
+// Value for the `mua` (Meta user attributes) cookie: SHA-256 hashes of the
+// customer's match keys, set after checkout so LATER browser events (which have
+// no form data) still carry PII match keys. Hashes only — never plaintext.
+export function buildMatchCookie(data: {
+  email?: string | null;
+  phone?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  city?: string | null;
+}): string {
+  const value: Record<string, string> = {};
+  const em = hashField(data.email);
+  const ph = hashPhone(data.phone);
+  const fn = hashField(data.firstName);
+  const ln = hashField(data.lastName);
+  const ct = hashField(data.city);
+  if (em) value.em = em;
+  if (ph) value.ph = ph;
+  if (fn) value.fn = fn;
+  if (ln) value.ln = ln;
+  if (ct) value.ct = ct;
+  return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
 }

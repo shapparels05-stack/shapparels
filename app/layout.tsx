@@ -76,6 +76,13 @@ export default function RootLayout({
                 var domain = parts.length > 1 ? ';domain=.' + parts.slice(-2).join('.') : '';
                 document.cookie = '_fbc=fb.1.' + Date.now() + '.' + fbclid + ';path=/;max-age=7776000;samesite=lax' + domain;
               }
+              // First-party anonymous visitor id -> hashed external_id on
+              // Conversions API events (improves Meta match quality).
+              if (!/(^|;\\s*)_shid=/.test(document.cookie)) {
+                var shid = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() :
+                  Date.now().toString(36) + Math.random().toString(36).slice(2);
+                document.cookie = '_shid=' + shid + ';path=/;max-age=31536000;samesite=lax';
+              }
             } catch (e) {}
           `}
         </Script>
