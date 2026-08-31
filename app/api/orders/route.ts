@@ -301,6 +301,8 @@ export async function POST(request: NextRequest) {
           firstName: firstName || null,
           lastName: rest.join(" ") || null,
           city: parsed.data.shippingCity || null,
+          state: parsed.data.shippingState || null,
+          zip: parsed.data.shippingZipCode || null,
           country: DEFAULT_COUNTRY,
         },
         customData: {

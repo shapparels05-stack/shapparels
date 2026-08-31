@@ -29,12 +29,22 @@ function hashPhone(phone?: string | null): string | undefined {
   return digits ? sha256(digits) : undefined;
 }
 
+// City/state/zip must be lowercase with spaces & punctuation removed
+// (Meta normalization spec) before hashing.
+function hashLocality(value?: string | null): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  return normalized ? sha256(normalized) : undefined;
+}
+
 export interface CapiUserData {
   email?: string | null;
   phone?: string | null;
   firstName?: string | null;
   lastName?: string | null;
   city?: string | null;
+  state?: string | null;
+  zip?: string | null;
   country?: string | null;
   clientIp?: string | null;
   userAgent?: string | null;
@@ -57,30 +67,39 @@ export interface CapiEvent {
   eventTime?: number; // unix seconds
 }
 
+// Assemble the hashed user_data block Meta receives (exported for testing).
+export function buildUserData(u: CapiUserData): Record<string, unknown> {
+  const user_data: Record<string, unknown> = {};
+  const em = hashField(u.email);
+  const ph = hashPhone(u.phone);
+  const fn = hashField(u.firstName);
+  const ln = hashField(u.lastName);
+  const ct = hashLocality(u.city);
+  const st = hashLocality(u.state);
+  const zp = hashLocality(u.zip);
+  const co = hashField(u.country);
+  const pre = u.prehashed || {};
+  if (em || pre.em) user_data.em = [em || pre.em];
+  if (ph || pre.ph) user_data.ph = [ph || pre.ph];
+  if (fn || pre.fn) user_data.fn = [fn || pre.fn];
+  if (ln || pre.ln) user_data.ln = [ln || pre.ln];
+  if (ct || pre.ct) user_data.ct = [ct || pre.ct];
+  if (st) user_data.st = [st];
+  if (zp) user_data.zp = [zp];
+  if (co) user_data.country = [co];
+  if (u.externalId) user_data.external_id = [sha256(u.externalId)];
+  if (u.clientIp) user_data.client_ip_address = u.clientIp;
+  if (u.userAgent) user_data.client_user_agent = u.userAgent;
+  if (u.fbp) user_data.fbp = u.fbp;
+  if (u.fbc) user_data.fbc = u.fbc;
+  return user_data;
+}
+
 export async function sendCapiEvents(events: CapiEvent[]): Promise<void> {
   if (!ACCESS_TOKEN || events.length === 0) return;
 
   const data = events.map((e) => {
-    const u = e.userData;
-    const user_data: Record<string, unknown> = {};
-    const em = hashField(u.email);
-    const ph = hashPhone(u.phone);
-    const fn = hashField(u.firstName);
-    const ln = hashField(u.lastName);
-    const ct = hashField(u.city);
-    const co = hashField(u.country);
-    const pre = u.prehashed || {};
-    if (em || pre.em) user_data.em = [em || pre.em];
-    if (ph || pre.ph) user_data.ph = [ph || pre.ph];
-    if (fn || pre.fn) user_data.fn = [fn || pre.fn];
-    if (ln || pre.ln) user_data.ln = [ln || pre.ln];
-    if (ct || pre.ct) user_data.ct = [ct || pre.ct];
-    if (co) user_data.country = [co];
-    if (u.externalId) user_data.external_id = [sha256(u.externalId)];
-    if (u.clientIp) user_data.client_ip_address = u.clientIp;
-    if (u.userAgent) user_data.client_user_agent = u.userAgent;
-    if (u.fbp) user_data.fbp = u.fbp;
-    if (u.fbc) user_data.fbc = u.fbc;
+    const user_data = buildUserData(e.userData);
 
     return {
       event_name: e.eventName,
@@ -142,7 +161,23 @@ export function capiContextFromRequest(req: Request): CapiUserData {
     } catch {}
   }
 
+  // IP-derived location from Vercel's geo headers: gives every event (even a
+  // fully anonymous visitor's) at least one PII match key (ct/st/zp/country).
+  const geo = (name: string) => {
+    const v = headers.get(name);
+    if (!v) return null;
+    try {
+      return decodeURIComponent(v);
+    } catch {
+      return v;
+    }
+  };
+
   return {
+    city: geo("x-vercel-ip-city"),
+    state: geo("x-vercel-ip-country-region"),
+    zip: geo("x-vercel-ip-postal-code"),
+    country: geo("x-vercel-ip-country"),
     clientIp: clientIp || null,
     userAgent: headers.get("user-agent"),
     fbp: cookies["_fbp"] || null,
