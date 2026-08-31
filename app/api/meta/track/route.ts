@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendCapiEvents, capiContextFromRequest } from "@/lib/meta-capi";
+import { sendCapiEvents, capiContextFromRequest, testCodeFromRequest } from "@/lib/meta-capi";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         userData: capiContextFromRequest(req),
         customData,
       },
-    ]);
+    ], testCodeFromRequest(req));
 
     return NextResponse.json({ ok: true });
   } catch {

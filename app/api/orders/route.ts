@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
 import { computeShipping } from "@/lib/shipping";
-import { sendCapiEvents, capiContextFromRequest, buildMatchCookie } from "@/lib/meta-capi";
+import { sendCapiEvents, capiContextFromRequest, buildMatchCookie, testCodeFromRequest } from "@/lib/meta-capi";
 import { sendOrderPlacedEmails } from "@/lib/email";
 import { sendOrderPlacedWhatsApp } from "@/lib/whatsapp";
 
@@ -316,7 +316,7 @@ export async function POST(request: NextRequest) {
           num_items: orderItems.reduce((s, i) => s + i.quantity, 0),
         },
       },
-    ]).catch(() => {});
+    ], testCodeFromRequest(request)).catch(() => {});
 
     // Notify the customer (email if provided + WhatsApp) and the store.
     // Both helpers swallow their own errors, so a notification hiccup can't

@@ -76,6 +76,14 @@ export default function RootLayout({
                 var domain = parts.length > 1 ? ';domain=.' + parts.slice(-2).join('.') : '';
                 document.cookie = '_fbc=fb.1.' + Date.now() + '.' + fbclid + ';path=/;max-age=7776000;samesite=lax' + domain;
               }
+              // Meta CAPI test mode for THIS browser only: visit any page with
+              // ?capi_test=TESTxxxxx (code from Events Manager > Test events)
+              // and this browser's server events go to the Test Events tab for
+              // 2 hours. Real visitors are unaffected.
+              var capiTest = new URLSearchParams(location.search).get('capi_test');
+              if (capiTest && /^TEST[A-Za-z0-9]+$/.test(capiTest)) {
+                document.cookie = 'capi_test=' + capiTest + ';path=/;max-age=7200;samesite=lax';
+              }
               // First-party anonymous visitor id -> hashed external_id on
               // Conversions API events (improves Meta match quality).
               if (!/(^|;\\s*)_shid=/.test(document.cookie)) {

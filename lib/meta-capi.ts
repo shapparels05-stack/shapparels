@@ -95,7 +95,15 @@ export function buildUserData(u: CapiUserData): Record<string, unknown> {
   return user_data;
 }
 
-export async function sendCapiEvents(events: CapiEvent[]): Promise<void> {
+// Per-browser test mode: the capi_test cookie (set by visiting the site with
+// ?capi_test=TESTxxxxx) routes that browser's server events to Events Manager's
+// "Test events" tab without affecting real traffic.
+export function testCodeFromRequest(req: Request): string | undefined {
+  const match = (req.headers.get("cookie") || "").match(/(?:^|;\s*)capi_test=(TEST[A-Za-z0-9]+)/);
+  return match?.[1];
+}
+
+export async function sendCapiEvents(events: CapiEvent[], testEventCode?: string): Promise<void> {
   if (!ACCESS_TOKEN || events.length === 0) return;
 
   const data = events.map((e) => {
@@ -113,7 +121,8 @@ export async function sendCapiEvents(events: CapiEvent[]): Promise<void> {
   });
 
   const body: Record<string, unknown> = { data };
-  if (TEST_CODE) body.test_event_code = TEST_CODE;
+  const code = testEventCode || TEST_CODE;
+  if (code) body.test_event_code = code;
 
   try {
     const res = await fetch(
