@@ -52,7 +52,18 @@ export async function POST(request: NextRequest) {
     // Verify prices from DB and build order items
     let subtotal = 0;
     let hasFreeShipping = false;
-    const orderItems = [];
+    const orderItems: {
+      productId: string | null;
+      productName: string;
+      productSlug: string;
+      productImage: string | null;
+      variantId: string | null;
+      variantLabel: string | null;
+      price: string;
+      quantity: number;
+      total: string;
+      bundleProductIds?: { productId: string; variantId: string | null }[];
+    }[] = [];
 
     for (const item of items) {
       let verifiedPrice: number;
