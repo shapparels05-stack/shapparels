@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createOrder, generateOrderNumber, getOrders } from "@/lib/db/queries/orders";
 import { checkoutFormSchema } from "@/lib/validators/checkout";
 import { db } from "@/lib/db";
@@ -273,7 +273,9 @@ export async function POST(request: NextRequest) {
     // Server-side Purchase (Conversions API). Uses a deterministic event_id
     // (purchase_<orderNumber>) matching the browser Pixel on the thank-you page
     // so Meta deduplicates the two. Hashed customer data gives a strong match.
-    // Fire-and-forget so a CAPI hiccup never blocks the order response.
+    // Sent via after() so it never delays the order response, but Vercel still
+    // keeps the function alive until it completes — a plain fire-and-forget
+    // gets killed when the function freezes and the event never reaches Meta.
     const [firstName, ...rest] = parsed.data.customerName.trim().split(/\s+/);
 
     // Product ids for Meta matching: real products only; bundle lines expand
@@ -289,7 +291,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    sendCapiEvents([
+    after(() => sendCapiEvents([
       {
         eventName: "Purchase",
         eventId: `purchase_${orderNumber}`,
@@ -316,7 +318,7 @@ export async function POST(request: NextRequest) {
           num_items: orderItems.reduce((s, i) => s + i.quantity, 0),
         },
       },
-    ], testCodeFromRequest(request)).catch(() => {});
+    ], testCodeFromRequest(request)).catch(() => {}));
 
     // Notify the customer (email if provided + WhatsApp) and the store.
     // Both helpers swallow their own errors, so a notification hiccup can't
