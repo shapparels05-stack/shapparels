@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
 import { computeShipping } from "@/lib/shipping";
+import { useShippingConfig } from "@/hooks/use-shipping-config";
 import { toast } from "sonner";
 
 export function CheckoutForm() {
@@ -18,8 +18,9 @@ export function CheckoutForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const subtotal = getTotal();
+  const { shippingCost, freeShippingThreshold } = useShippingConfig();
   const freeShipping = items.some((i) => i.freeShipping);
-  const shipping = computeShipping(subtotal, freeShipping);
+  const shipping = computeShipping(subtotal, freeShipping, shippingCost, freeShippingThreshold);
   const total = subtotal + shipping;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -112,7 +113,7 @@ export function CheckoutForm() {
       <div className="space-y-4">
         <h3 className="font-serif text-lg font-semibold">Shipping Address</h3>
         <p className="text-xs text-muted-foreground">
-          Free shipping on orders over Rs. {FREE_SHIPPING_THRESHOLD.toLocaleString()}. Below that, a flat rate of Rs. {SHIPPING_COST} applies.
+          Free shipping on orders over Rs. {freeShippingThreshold.toLocaleString()}. Below that, a flat rate of Rs. {shippingCost.toLocaleString()} applies.
         </p>
 
         <div className="space-y-2">

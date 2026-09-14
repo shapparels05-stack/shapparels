@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
 import { computeShipping } from "@/lib/shipping";
+import { getShippingSettings } from "@/lib/db/queries/settings";
 import { sendCapiEvents, capiContextFromRequest, buildMatchCookie, testCodeFromRequest } from "@/lib/meta-capi";
 import { sendOrderPlacedEmails } from "@/lib/email";
 import { sendOrderPlacedWhatsApp } from "@/lib/whatsapp";
@@ -261,7 +262,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const shippingCost = computeShipping(subtotal, hasFreeShipping);
+    const shippingConfig = await getShippingSettings();
+    const shippingCost = computeShipping(
+      subtotal,
+      hasFreeShipping,
+      shippingConfig.shippingCost,
+      shippingConfig.freeShippingThreshold
+    );
     const total = subtotal + shippingCost;
     const orderNumber = generateOrderNumber();
 

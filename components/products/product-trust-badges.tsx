@@ -1,25 +1,32 @@
 import { Truck, RotateCcw, BadgeCheck } from "lucide-react";
 import { CURRENCY_SYMBOL, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
 
-const badges = [
-  {
-    icon: Truck,
-    title: "Free Shipping",
-    subtitle: `On orders above ${CURRENCY_SYMBOL} ${FREE_SHIPPING_THRESHOLD.toLocaleString()}`,
-  },
-  {
-    icon: RotateCcw,
-    title: "7-Day Returns",
-    subtitle: "Easy returns & exchanges",
-  },
-  {
-    icon: BadgeCheck,
-    title: "Cash on Delivery",
-    subtitle: "Pay when you receive",
-  },
-];
+interface ProductTrustBadgesProps {
+  // Live admin-configured value (getShippingSettings); defaults to the constant.
+  freeShippingThreshold?: number;
+}
 
-export function ProductTrustBadges() {
+export function ProductTrustBadges({
+  freeShippingThreshold = FREE_SHIPPING_THRESHOLD,
+}: ProductTrustBadgesProps) {
+  const badges = [
+    {
+      icon: Truck,
+      title: "Free Shipping",
+      subtitle: `On orders above ${CURRENCY_SYMBOL} ${freeShippingThreshold.toLocaleString()}`,
+    },
+    {
+      icon: RotateCcw,
+      title: "7-Day Returns",
+      subtitle: "Easy returns & exchanges",
+    },
+    {
+      icon: BadgeCheck,
+      title: "Cash on Delivery",
+      subtitle: "Pay when you receive",
+    },
+  ];
+
   return (
     <div className="mt-6 grid grid-cols-1 gap-3 rounded-lg border border-border/60 bg-card/50 p-4 sm:grid-cols-3">
       {badges.map(({ icon: Icon, title, subtitle }) => (

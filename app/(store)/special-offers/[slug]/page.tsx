@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { getSpecialOfferBySlug } from "@/lib/db/queries/special-offers";
+import { getShippingSettings } from "@/lib/db/queries/settings";
 import { getProductsGroupedByCategory } from "@/lib/db/queries/products";
 import { ProductCarousel } from "@/components/products/product-carousel";
 import { ProductImages } from "@/components/products/product-images";
@@ -43,6 +44,8 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const offer = await getSpecialOfferBySlug(slug);
   if (!offer) notFound();
+
+  const shippingConfig = await getShippingSettings();
 
   // "You May Also Like" — prioritise the category of the first bundled product.
   const categoryGroups = await getProductsGroupedByCategory({
@@ -168,7 +171,7 @@ export default async function SpecialOfferDetailPage({ params }: PageProps) {
             />
           </div>
 
-          <ProductTrustBadges />
+          <ProductTrustBadges freeShippingThreshold={shippingConfig.freeShippingThreshold} />
         </div>
       </div>
 

@@ -9,6 +9,7 @@ import { ProductTrustBadges } from "@/components/products/product-trust-badges";
 import { DeferUntilVisible } from "@/components/shared/defer-until-visible";
 import { PromoPopup } from "@/components/layout/promo-popup";
 import { getActivePromoPopups } from "@/lib/db/queries/promo-popups";
+import { getShippingSettings } from "@/lib/db/queries/settings";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -34,7 +35,10 @@ function ProductsSkeleton() {
 }
 
 export default async function HomePage() {
-  const promoPopups = await getActivePromoPopups();
+  const [promoPopups, { freeShippingThreshold }] = await Promise.all([
+    getActivePromoPopups(),
+    getShippingSettings(),
+  ]);
   return (
     <>
       <PromoPopup popups={promoPopups} />
@@ -67,7 +71,7 @@ export default async function HomePage() {
         </DeferUntilVisible>
       </Suspense>
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <ProductTrustBadges />
+        <ProductTrustBadges freeShippingThreshold={freeShippingThreshold} />
       </section>
     </>
   );

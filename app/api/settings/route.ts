@@ -4,7 +4,13 @@ import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-const ALLOWED_KEYS = ["facebook_url", "instagram_url", "low_stock_threshold"];
+const ALLOWED_KEYS = [
+  "facebook_url",
+  "instagram_url",
+  "low_stock_threshold",
+  "shipping_cost",
+  "free_shipping_threshold",
+];
 
 export async function GET() {
   const settings = await getSiteSettings();

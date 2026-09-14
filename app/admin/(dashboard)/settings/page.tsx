@@ -12,6 +12,8 @@ export default function AdminSettingsPage() {
   const [facebookUrl, setFacebookUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
   const [lowStockThreshold, setLowStockThreshold] = useState("10");
+  const [shippingCost, setShippingCost] = useState("200");
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState("5000");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -22,6 +24,8 @@ export default function AdminSettingsPage() {
         setFacebookUrl(s.facebook_url || "");
         setInstagramUrl(s.instagram_url || "");
         setLowStockThreshold(s.low_stock_threshold || "10");
+        setShippingCost(s.shipping_cost || "200");
+        setFreeShippingThreshold(s.free_shipping_threshold || "5000");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -36,6 +40,8 @@ export default function AdminSettingsPage() {
           facebook_url: facebookUrl,
           instagram_url: instagramUrl,
           low_stock_threshold: lowStockThreshold,
+          shipping_cost: shippingCost,
+          free_shipping_threshold: freeShippingThreshold,
         }),
       });
       if (!res.ok) throw new Error();
@@ -99,6 +105,37 @@ export default function AdminSettingsPage() {
                   The &quot;Hurry, only X left&quot; banner shows when a product&apos;s stock is at or below this
                   number (global). Per-product, you can also turn the banner off entirely.
                 </p>
+              </div>
+
+              <div className="space-y-4 border-t border-border/50 pt-4">
+                <p className="text-sm font-semibold">Shipping charges</p>
+                <div className="space-y-2">
+                  <Label>Shipping charge (Rs)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={shippingCost}
+                    onChange={(e) => setShippingCost(e.target.value)}
+                    className="w-32"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Flat courier charge added to orders below the free-shipping amount.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Free shipping above (Rs)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={freeShippingThreshold}
+                    onChange={(e) => setFreeShippingThreshold(e.target.value)}
+                    className="w-32"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Orders at or above this subtotal ship free. Changes apply across the
+                    site (cart, checkout, FAQ, badges) as soon as you save.
+                  </p>
+                </div>
               </div>
 
               <Button onClick={save} disabled={saving} size="sm">

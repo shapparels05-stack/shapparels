@@ -4,14 +4,16 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/stores/cart-store";
-import { CURRENCY_SYMBOL, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { CURRENCY_SYMBOL } from "@/lib/constants";
 import { computeShipping } from "@/lib/shipping";
+import { useShippingConfig } from "@/hooks/use-shipping-config";
 
 export function CartSummary() {
   const subtotal = useCartStore((s) => s.getTotal());
   const items = useCartStore((s) => s.items);
+  const { shippingCost, freeShippingThreshold } = useShippingConfig();
   const freeShipping = items.some((i) => i.freeShipping);
-  const shipping = computeShipping(subtotal, freeShipping);
+  const shipping = computeShipping(subtotal, freeShipping, shippingCost, freeShippingThreshold);
   const total = subtotal + shipping;
 
   return (
@@ -33,9 +35,9 @@ export function CartSummary() {
             )}
           </span>
         </div>
-        {!freeShipping && subtotal > 0 && subtotal < FREE_SHIPPING_THRESHOLD && (
+        {!freeShipping && subtotal > 0 && subtotal < freeShippingThreshold && (
           <p className="text-xs text-muted-foreground">
-            Add {CURRENCY_SYMBOL} {(FREE_SHIPPING_THRESHOLD - subtotal).toLocaleString()} more for free shipping
+            Add {CURRENCY_SYMBOL} {(freeShippingThreshold - subtotal).toLocaleString()} more for free shipping
           </p>
         )}
       </div>

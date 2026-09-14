@@ -53,6 +53,7 @@ interface ProductDetailClientProps {
   discountPercent?: number;
   code?: string | null;
   lowStockThreshold?: number;
+  freeShippingThreshold?: number;
   infoHeader: React.ReactNode;
 }
 
@@ -64,6 +65,7 @@ export function ProductDetailClient({
   discountPercent,
   code,
   lowStockThreshold = 10,
+  freeShippingThreshold,
   infoHeader,
 }: ProductDetailClientProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
@@ -313,7 +315,7 @@ export function ProductDetailClient({
           />
         </div>
 
-        <ProductTrustBadges />
+        <ProductTrustBadges freeShippingThreshold={freeShippingThreshold} />
       </div>
     </div>
   );

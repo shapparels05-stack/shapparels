@@ -6,13 +6,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { getShippingSettings } from "@/lib/db/queries/settings";
 
 export const metadata: Metadata = {
   title: "Frequently Asked Questions",
   description: "Find answers to commonly asked questions about SH Apparels orders, shipping, returns, and payment.",
 };
 
-const faqSections = [
+// The shipping answer interpolates the live admin-configured charges, so the
+// FAQ can never drift out of sync with the real rates.
+const faqSectionsFor = (shippingCost: number, freeShippingThreshold: number) => [
   {
     title: "Ordering",
     items: [
@@ -43,7 +46,7 @@ const faqSections = [
       },
       {
         question: "Is shipping free?",
-        answer: "We offer free shipping on orders above Rs. 5,000. For orders below this amount, a flat shipping fee of Rs. 200 applies.",
+        answer: `We offer free shipping on orders above Rs. ${freeShippingThreshold.toLocaleString()}. For orders below this amount, a flat shipping fee of Rs. ${shippingCost.toLocaleString()} applies.`,
       },
     ],
   },
@@ -75,7 +78,11 @@ const faqSections = [
   },
 ];
 
-export default function FAQPage() {
+export const revalidate = 3600;
+
+export default async function FAQPage() {
+  const { shippingCost, freeShippingThreshold } = await getShippingSettings();
+  const faqSections = faqSectionsFor(shippingCost, freeShippingThreshold);
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
