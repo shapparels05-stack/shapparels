@@ -278,16 +278,13 @@ export function ProductDetailClient({
           </div>
 
           {/* Perks — flicker to catch the eye, sit above Add to Cart */}
-          <div className="flex flex-wrap gap-2">
-            <span className="animate-flicker inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
-              🎁 Free surprise gift on every first purchase
-            </span>
-            {product.freeShipping && (
+          {product.freeShipping && (
+            <div className="flex flex-wrap gap-2">
               <span className="animate-flicker inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
                 🚚 Free delivery on this item
               </span>
-            )}
-          </div>
+            </div>
+          )}
 
           <AddToCartButton
             product={{
