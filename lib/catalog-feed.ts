@@ -53,6 +53,9 @@ interface FeedItem {
   productType?: string;
   color?: string;
   size?: string;
+  // Store product code (SHB16 etc.) — searchable in Commerce Manager without
+  // cluttering the ad title.
+  mpn?: string;
 }
 
 function itemToXml(it: FeedItem): string {
@@ -77,6 +80,7 @@ function itemToXml(it: FeedItem): string {
   tag("product_type", it.productType);
   tag("color", it.color);
   tag("size", it.size);
+  tag("mpn", it.mpn);
   lines.push("    </item>");
   return lines.join("\n");
 }
@@ -208,7 +212,8 @@ export async function buildMetaCatalogXml(): Promise<string> {
             // Group key = product id, matching the content_ids our Pixel/CAPI
             // report, so dynamic (retargeting) ads can link viewed products.
             itemGroupId: p.id,
-            title: `${[p.code?.trim(), p.name.trim()].filter(Boolean).join(" ")}${label ? " - " + label : ""}`,
+            // Clean ad title (no store code — that goes in mpn instead).
+            title: `${p.name.trim()}${label ? " - " + label : ""}`,
             description,
             link,
             imageLink,
@@ -221,6 +226,7 @@ export async function buildMetaCatalogXml(): Promise<string> {
             productType: p.categoryName || undefined,
             color,
             size,
+            mpn: p.code?.trim() || undefined,
           });
         }
       } else {
@@ -229,7 +235,7 @@ export async function buildMetaCatalogXml(): Promise<string> {
         const { price, salePrice } = priceFields(p.basePrice, p.compareAtPrice);
         items.push({
           id: p.id, // matches the content_ids our Pixel/CAPI report
-          title: `${[p.code?.trim(), p.name.trim()].filter(Boolean).join(" ")}`,
+          title: p.name.trim(),
           description,
           link,
           imageLink,
@@ -240,6 +246,7 @@ export async function buildMetaCatalogXml(): Promise<string> {
           brand: SITE_NAME,
           condition: "new",
           productType: p.categoryName || undefined,
+          mpn: p.code?.trim() || undefined,
         });
       }
     }
