@@ -8,6 +8,7 @@ interface StatsCardsProps {
     week: { count: number; revenue: string };
     month: { count: number; revenue: string };
     totalProducts: number;
+    archivedProducts?: number;
   };
 }
 
@@ -32,9 +33,9 @@ export function StatsCards({ stats }: StatsCardsProps) {
       icon: DollarSign,
     },
     {
-      title: "Total Products",
+      title: "Active Products",
       value: stats.totalProducts.toString(),
-      description: "Active in catalog",
+      description: `${stats.archivedProducts ?? 0} archived`,
       icon: Package,
     },
   ];

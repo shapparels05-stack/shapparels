@@ -200,13 +200,19 @@ export async function getOrderStats() {
       .select({ count: sql<number>`count(*)`, revenue: sql<string>`COALESCE(SUM(CAST(total AS DECIMAL)), 0)` })
       .from(orders)
       .where(sql`${orders.createdAt} >= ${monthStart.toISOString()}`),
-    db.select({ count: sql<number>`count(*)` }).from(products),
+    db
+      .select({
+        active: sql<number>`count(*) FILTER (WHERE ${products.isActive} = true)`,
+        archived: sql<number>`count(*) FILTER (WHERE ${products.isActive} = false)`,
+      })
+      .from(products),
   ]);
 
   return {
     today: { count: Number(todayOrders[0]?.count ?? 0), revenue: todayOrders[0]?.revenue ?? "0" },
     week: { count: Number(weekOrders[0]?.count ?? 0), revenue: weekOrders[0]?.revenue ?? "0" },
     month: { count: Number(monthOrders[0]?.count ?? 0), revenue: monthOrders[0]?.revenue ?? "0" },
-    totalProducts: Number(totalProducts[0]?.count ?? 0),
+    totalProducts: Number(totalProducts[0]?.active ?? 0),
+    archivedProducts: Number(totalProducts[0]?.archived ?? 0),
   };
 }
