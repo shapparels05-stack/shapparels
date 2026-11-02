@@ -14,6 +14,7 @@ export default function AdminSettingsPage() {
   const [lowStockThreshold, setLowStockThreshold] = useState("10");
   const [shippingCost, setShippingCost] = useState("200");
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("5000");
+  const [minOrderAmount, setMinOrderAmount] = useState("800");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -26,6 +27,7 @@ export default function AdminSettingsPage() {
         setLowStockThreshold(s.low_stock_threshold || "10");
         setShippingCost(s.shipping_cost || "200");
         setFreeShippingThreshold(s.free_shipping_threshold || "5000");
+        setMinOrderAmount(s.min_order_amount || "800");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -42,6 +44,7 @@ export default function AdminSettingsPage() {
           low_stock_threshold: lowStockThreshold,
           shipping_cost: shippingCost,
           free_shipping_threshold: freeShippingThreshold,
+          min_order_amount: minOrderAmount,
         }),
       });
       if (!res.ok) throw new Error();
@@ -134,6 +137,19 @@ export default function AdminSettingsPage() {
                   <p className="text-xs text-muted-foreground">
                     Orders at or above this subtotal ship free. Changes apply across the
                     site (cart, checkout, FAQ, badges) as soon as you save.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Minimum order amount (Rs)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={minOrderAmount}
+                    onChange={(e) => setMinOrderAmount(e.target.value)}
+                    className="w-32"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Customers can&apos;t check out below this subtotal. Set 0 to disable.
                   </p>
                 </div>
               </div>

@@ -7,6 +7,7 @@ export const CURRENCY_SYMBOL = "Rs.";
 export const DEFAULT_COUNTRY = "Pakistan";
 export const SHIPPING_COST = 200; // PKR flat rate
 export const FREE_SHIPPING_THRESHOLD = 5000; // PKR
+export const MIN_ORDER_AMOUNT = 800; // PKR — default; admin-editable in Settings
 
 export const ORDER_STATUSES = [
   "pending",

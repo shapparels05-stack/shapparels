@@ -18,9 +18,10 @@ export function CheckoutForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const subtotal = getTotal();
-  const { shippingCost, freeShippingThreshold } = useShippingConfig();
+  const { shippingCost, freeShippingThreshold, minOrderAmount } = useShippingConfig();
   const freeShipping = items.some((i) => i.freeShipping);
   const shipping = computeShipping(subtotal, freeShipping, shippingCost, freeShippingThreshold);
+  const belowMinimum = subtotal > 0 && subtotal < minOrderAmount;
   const total = subtotal + shipping;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -151,7 +152,18 @@ export function CheckoutForm() {
         </p>
       </div>
 
-      <Button type="submit" size="lg" className="w-full" disabled={loading || items.length === 0}>
+      {belowMinimum && (
+        <p className="text-center text-sm font-medium text-destructive">
+          Minimum order is Rs. {minOrderAmount.toLocaleString()} — add Rs.{" "}
+          {(minOrderAmount - subtotal).toLocaleString()} more to place your order.
+        </p>
+      )}
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full"
+        disabled={loading || items.length === 0 || belowMinimum}
+      >
         {loading ? "Placing Order..." : `Place Order — Rs. ${total.toLocaleString()}`}
       </Button>
     </form>

@@ -11,9 +11,10 @@ import { useShippingConfig } from "@/hooks/use-shipping-config";
 export function CartSummary() {
   const subtotal = useCartStore((s) => s.getTotal());
   const items = useCartStore((s) => s.items);
-  const { shippingCost, freeShippingThreshold } = useShippingConfig();
+  const { shippingCost, freeShippingThreshold, minOrderAmount } = useShippingConfig();
   const freeShipping = items.some((i) => i.freeShipping);
   const shipping = computeShipping(subtotal, freeShipping, shippingCost, freeShippingThreshold);
+  const belowMinimum = subtotal > 0 && subtotal < minOrderAmount;
   const total = subtotal + shipping;
 
   return (
@@ -49,9 +50,21 @@ export function CartSummary() {
         <span>{CURRENCY_SYMBOL} {total.toLocaleString()}</span>
       </div>
 
-      <Button className="mt-6 w-full" size="lg" asChild>
-        <Link href="/checkout">Proceed to Checkout</Link>
-      </Button>
+      {belowMinimum ? (
+        <>
+          <Button className="mt-6 w-full" size="lg" disabled>
+            Proceed to Checkout
+          </Button>
+          <p className="mt-2 text-center text-xs font-medium text-destructive">
+            Minimum order is {CURRENCY_SYMBOL} {minOrderAmount.toLocaleString()} — add{" "}
+            {CURRENCY_SYMBOL} {(minOrderAmount - subtotal).toLocaleString()} more to checkout
+          </p>
+        </>
+      ) : (
+        <Button className="mt-6 w-full" size="lg" asChild>
+          <Link href="/checkout">Proceed to Checkout</Link>
+        </Button>
+      )}
 
       <p className="mt-3 text-center text-xs text-muted-foreground">
         Cash on Delivery Only

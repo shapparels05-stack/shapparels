@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { siteSettings } from "@/lib/db/schema";
-import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD } from "@/lib/constants";
+import { SHIPPING_COST, FREE_SHIPPING_THRESHOLD, MIN_ORDER_AMOUNT } from "@/lib/constants";
 
 export async function getSiteSettings(): Promise<Record<string, string>> {
   const rows = await db.select().from(siteSettings);
@@ -14,10 +14,12 @@ export async function getSiteSettings(): Promise<Record<string, string>> {
 export function parseShippingSettings(s: Record<string, string>) {
   const cost = parseInt(s.shipping_cost || "", 10);
   const threshold = parseInt(s.free_shipping_threshold || "", 10);
+  const minOrder = parseInt(s.min_order_amount || "", 10);
   return {
     shippingCost: Number.isFinite(cost) && cost >= 0 ? cost : SHIPPING_COST,
     freeShippingThreshold:
       Number.isFinite(threshold) && threshold >= 0 ? threshold : FREE_SHIPPING_THRESHOLD,
+    minOrderAmount: Number.isFinite(minOrder) && minOrder >= 0 ? minOrder : MIN_ORDER_AMOUNT,
   };
 }
 

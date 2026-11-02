@@ -6,7 +6,7 @@ import { products, productVariants, specialOffers, specialOfferItems } from "@/l
 import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { headers } from "next/headers";
-import { CURRENCY, DEFAULT_COUNTRY } from "@/lib/constants";
+import { CURRENCY, CURRENCY_SYMBOL, DEFAULT_COUNTRY } from "@/lib/constants";
 import { computeShipping } from "@/lib/shipping";
 import { getShippingSettings } from "@/lib/db/queries/settings";
 import { sendCapiEvents, capiContextFromRequest, buildMatchCookie, testCodeFromRequest } from "@/lib/meta-capi";
@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const shippingConfig = await getShippingSettings();
 
     // Verify prices from DB and build order items
     let subtotal = 0;
@@ -262,7 +264,43 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const shippingConfig = await getShippingSettings();
+    // Enforce the admin-configured minimum order amount (the cart/checkout UI
+    // blocks this earlier; this is the authoritative backstop). Stock was
+    // already deducted while verifying the lines above, so restore it.
+    if (subtotal < shippingConfig.minOrderAmount) {
+      const restock: PromiseLike<unknown>[] = [];
+      for (const it of orderItems) {
+        const parts = it.bundleProductIds
+          ? it.bundleProductIds.map((c) => ({ productId: c.productId, variantId: c.variantId }))
+          : [{ productId: it.productId, variantId: it.variantId }];
+        for (const p of parts) {
+          if (p.variantId) {
+            restock.push(
+              db
+                .update(productVariants)
+                .set({ stock: sql`${productVariants.stock} + ${it.quantity}` })
+                .where(eq(productVariants.id, p.variantId))
+            );
+          }
+          if (p.productId) {
+            restock.push(
+              db
+                .update(products)
+                .set({ stock: sql`${products.stock} + ${it.quantity}` })
+                .where(eq(products.id, p.productId))
+            );
+          }
+        }
+      }
+      await Promise.all(restock);
+      return NextResponse.json(
+        {
+          error: `Minimum order amount is ${CURRENCY_SYMBOL} ${shippingConfig.minOrderAmount.toLocaleString()}. Please add more items to your cart.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const shippingCost = computeShipping(
       subtotal,
       hasFreeShipping,

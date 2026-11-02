@@ -10,6 +10,7 @@ const ALLOWED_KEYS = [
   "low_stock_threshold",
   "shipping_cost",
   "free_shipping_threshold",
+  "min_order_amount",
 ];
 
 export async function GET() {
