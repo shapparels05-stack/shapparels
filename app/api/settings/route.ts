@@ -11,6 +11,7 @@ const ALLOWED_KEYS = [
   "shipping_cost",
   "free_shipping_threshold",
   "min_order_amount",
+  "tiktok_pixel_id",
 ];
 
 export async function GET() {

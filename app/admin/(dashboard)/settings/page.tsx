@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Facebook, Instagram, Save } from "lucide-react";
 import { toast } from "sonner";
+import { TIKTOK_PIXEL_ID } from "@/lib/constants";
 
 export default function AdminSettingsPage() {
   const [facebookUrl, setFacebookUrl] = useState("");
@@ -15,6 +16,7 @@ export default function AdminSettingsPage() {
   const [shippingCost, setShippingCost] = useState("200");
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("5000");
   const [minOrderAmount, setMinOrderAmount] = useState("800");
+  const [tiktokPixelId, setTiktokPixelId] = useState(TIKTOK_PIXEL_ID);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -28,6 +30,7 @@ export default function AdminSettingsPage() {
         setShippingCost(s.shipping_cost || "200");
         setFreeShippingThreshold(s.free_shipping_threshold || "5000");
         setMinOrderAmount(s.min_order_amount || "800");
+        setTiktokPixelId(s.tiktok_pixel_id || TIKTOK_PIXEL_ID);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -45,6 +48,7 @@ export default function AdminSettingsPage() {
           shipping_cost: shippingCost,
           free_shipping_threshold: freeShippingThreshold,
           min_order_amount: minOrderAmount,
+          tiktok_pixel_id: tiktokPixelId,
         }),
       });
       if (!res.ok) throw new Error();
@@ -152,6 +156,21 @@ export default function AdminSettingsPage() {
                     Customers can&apos;t check out below this subtotal. Set 0 to disable.
                   </p>
                 </div>
+              </div>
+
+              <div className="space-y-2 border-t border-border/50 pt-4">
+                <Label>TikTok Pixel ID</Label>
+                <Input
+                  value={tiktokPixelId}
+                  onChange={(e) => setTiktokPixelId(e.target.value)}
+                  placeholder={TIKTOK_PIXEL_ID}
+                  className="w-72 font-mono"
+                />
+                <p className="text-xs text-muted-foreground">
+                  From TikTok Events Manager (e.g. {TIKTOK_PIXEL_ID}). Sends page views,
+                  product views, add-to-cart, checkout and purchases to TikTok.
+                  Leave blank to use the default.
+                </p>
               </div>
 
               <Button onClick={save} disabled={saving} size="sm">

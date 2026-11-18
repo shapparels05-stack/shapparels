@@ -1,6 +1,8 @@
 import { CURRENCY } from "@/lib/constants";
+import { ttPageView, ttTrack } from "@/lib/tiktok-pixel";
 
-// Meta (Facebook) Pixel standard event helper.
+// Meta (Facebook) Pixel standard event helper. Every event is also sent to the
+// TikTok Pixel (when configured) with the same event id.
 // Always sends `currency` alongside `value` so Meta doesn't flag
 // "currency missing" / "value missing" warnings on conversion events.
 
@@ -71,8 +73,17 @@ interface TrackOptions {
   skipServer?: boolean;
 }
 
-function track(eventName: string, params: PixelEventParams = {}, options: TrackOptions = {}) {
-  if (typeof window === "undefined" || typeof window.fbq !== "function") return;
+function track(
+  eventName: "ViewContent" | "AddToCart" | "InitiateCheckout" | "Purchase",
+  params: PixelEventParams = {},
+  options: TrackOptions = {}
+) {
+  if (typeof window === "undefined") return;
+  const eventId = options.eventId ?? genEventId();
+
+  ttTrack(eventName, params, eventId);
+
+  if (typeof window.fbq !== "function") return;
 
   const payload: Record<string, unknown> = {};
 
@@ -93,13 +104,14 @@ function track(eventName: string, params: PixelEventParams = {}, options: TrackO
   payload.content_type = params.contentType ?? "product";
   if (params.numItems !== undefined) payload.num_items = params.numItems;
 
-  const eventId = options.eventId ?? genEventId();
   window.fbq("track", eventName, payload, { eventID: eventId });
   if (!options.skipServer) mirrorToServer(eventName, eventId, payload);
 }
 
 export function trackPageView() {
-  if (typeof window === "undefined" || typeof window.fbq !== "function") return;
+  if (typeof window === "undefined") return;
+  ttPageView();
+  if (typeof window.fbq !== "function") return;
   window.fbq("track", "PageView");
 }
 
