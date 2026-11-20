@@ -62,7 +62,7 @@ async function main() {
   }
   const email = (process.argv[2] || "admin@shapparels.pk").trim().toLowerCase();
 
-  const sql = postgres(connectionString);
+  const sql = postgres(connectionString, { connect_timeout: 20, max: 1 });
   const db = drizzle(sql);
   try {
     const [admin] = await db.select().from(user).where(eq(user.email, email)).limit(1);
@@ -102,11 +102,19 @@ async function main() {
       .returning({ id: session.id });
     console.log(`Password changed for ${email}. Signed out of ${ended.length} session(s).`);
   } finally {
-    await sql.end();
+    await sql.end({ timeout: 5 });
   }
 }
 
 main().catch((err) => {
-  console.error("Error:", err instanceof Error ? err.message : err);
+  const cause = err instanceof Error ? (err.cause as { code?: string } | undefined) : undefined;
+  const code = cause?.code ?? (err as { code?: string })?.code;
+  if (code === "CONNECT_TIMEOUT" || code === "ENOTFOUND" || code === "ECONNREFUSED") {
+    console.error(
+      `Could not reach the database (${code}). Check your internet connection and try again. Nothing changed.`
+    );
+  } else {
+    console.error("Error:", err instanceof Error ? err.message : err, cause ?? "");
+  }
   process.exit(1);
 });
